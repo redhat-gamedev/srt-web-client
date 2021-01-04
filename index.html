@@ -2,63 +2,108 @@
 <html>
 <head>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.24.1/dist/phaser-arcade-physics.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.0.0/bundles/stomp.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.0.0/bundles/stomp.umd.min.js"></script>
     <script src="javascript/rhea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/protobufjs@6.10.2/dist/protobuf.js"></script>
     <script src="javascript/CommandBuffer-proto.js"></script>
     <script src="javascript/box2d-proto.js"></script>
+    <script src="javascript/SecurityCommandBuffer-proto.js"></script>
 </head>
 <body>
 
-    <script>
-    var config = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 600,
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 200 }
-            }
-        },
-        scene: {
-            preload: preload,
-            create: create
-        }
+  <script>
+    const client = new StompJs.Client({
+      brokerURL: 'ws://10.88.0.9:61613',
+      connectHeaders: {
+        login: 'user',
+        passcode: 'password',
+      },
+      debug: function (str) {
+        console.log(str);
+      },
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+    });
+  
+    client.onConnect = function (frame) {
+      // Do something, all subscribes must be done is this callback
+      // This is needed because this will be executed after a (re)connect
     };
+  
+    client.onStompError = function (frame) {
+      // Will be invoked in case of error encountered at Broker
+      // Bad login/passcode typically will cause an error
+      // Complaint brokers will set `message` header with a brief message. Body may contain details.
+      // Compliant brokers will terminate the connection after any error
+      console.log('Broker reported error: ' + frame.headers['message']);
+      console.log('Additional details: ' + frame.body);
+    };
+  
+    client.activate();
 
-    var game = new Phaser.Game(config);
-
-    function preload ()
-    {
-        this.load.setBaseURL('http://labs.phaser.io');
-
-        this.load.image('sky', 'assets/skies/space3.png');
-        this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-        this.load.image('red', 'assets/particles/red.png');
+    function join_server() {
+      SecurityCommandBuffer_SecurityCommandBuffer;
+      var scb_join = {type: 1};
+      var scb_join_message = SecurityCommandBuffer_SecurityCommandBuffer.create(scb_join); 
+      var scb_join_buffer = SecurityCommandBuffer_SecurityCommandBuffer.encode(scb_join_message).finish();
+      // setting content-type header is not mandatory, however a good practice
+      client.publish({
+        destination: 'COMMAND.IN',
+        binaryBody: scb_join_buffer,
+        headers: { 'content-type': 'application/octet-stream' },
+      });
     }
 
-    function create ()
-    {
-        this.add.image(400, 300, 'sky');
 
-        var particles = this.add.particles('red');
-
-        var emitter = particles.createEmitter({
-            speed: 100,
-            scale: { start: 1, end: 0 },
-            blendMode: 'ADD'
-        });
-
-        var logo = this.physics.add.image(400, 100, 'logo');
-
-        logo.setVelocity(100, 200);
-        logo.setBounce(1, 1);
-        logo.setCollideWorldBounds(true);
-
-        emitter.startFollow(logo);
-    }
-    </script>
+  // var config = {
+  //     type: Phaser.AUTO,
+  //     width: 800,
+  //     height: 600,
+  //     physics: {
+  //         default: 'arcade',
+  //         arcade: {
+  //             gravity: { y: 200 }
+  //         }
+  //     },
+  //     scene: {
+  //         preload: preload,
+  //         create: create
+  //     }
+  // };
+  
+  // var game = new Phaser.Game(config);
+  
+  // function preload ()
+  // {
+  //     this.load.setBaseURL('http://labs.phaser.io');
+  
+  //     this.load.image('sky', 'assets/skies/space3.png');
+  //     this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+  //     this.load.image('red', 'assets/particles/red.png');
+  // }
+  
+  // function create ()
+  // {
+  //     this.add.image(400, 300, 'sky');
+  
+  //     var particles = this.add.particles('red');
+  
+  //     var emitter = particles.createEmitter({
+  //         speed: 100,
+  //         scale: { start: 1, end: 0 },
+  //         blendMode: 'ADD'
+  //     });
+  
+  //     var logo = this.physics.add.image(400, 100, 'logo');
+  
+  //     logo.setVelocity(100, 200);
+  //     logo.setBounce(1, 1);
+  //     logo.setCollideWorldBounds(true);
+  
+  //     emitter.startFollow(logo);
+  // }
+  </script>
 
 </body>
 </html>
