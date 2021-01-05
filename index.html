@@ -10,8 +10,7 @@
 <body>
 
   <script>
-  (async function() {
-
+    
     // identify us during the session
     var myuuid = uuidv4();
 
@@ -42,88 +41,98 @@
       console.log('Broker reported error: ' + frame.headers['message']);
       console.log('Additional details: ' + frame.body);
     };
-  
-    client.activate();
 
-    try {
+    (async (protobuf) => {
+      try {
         // set up command buffer proto
-        var loadCommandBuffer = await protobuf.load("../proto/CommandBuffer.proto")
-        var CommandBuffer = loadCommandBuffer.lookupType("redhatgamedev.srt.CommandBuffer");
-
-        // set up security buffer proto
-        var loadSecurityCommandBuffer = await protobuf.load("../proto/SecurityCommandBuffer.proto")
-        const SecurityCommandBuffer = loadSecurityCommandBuffer.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
-
+        const [loadCommandBuffer,
+          loadSecurityCommandBuffer,
+          loadEntityGameEventBuffer] = await Promise.all([
+          protobuf.load("../proto/CommandBuffer.proto"),
+          protobuf.load("../proto/SecurityCommandBuffer.proto"),
+          protobuf.load("../proto/EntityGameEventBuffer.proto")
+          ]);
+        const CommandBuffer = loadCommandBuffer.lookupType("redhatgamedev.srt.CommandBuffer");
+        const SecurityBuffer = loadSecurityBuffer.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
+        const EntityGameEventBuffer = loadEntityGameEventBuffer.lookupType("redhatgamedev.srt.EntityGameEventBuffer");
         console.log('loaded', {CommandBuffer, SecurityCommandBuffer});
+      }
+      catch (e) {
+        console.error('Error loading Protobuf definitions.');
+        throw e;
+        /* handle error */
+      }
 
-        var scb_join = {type: 1, securityCommandBuffer: {type: 1}};
-        var scb_join_message = CommandBuffer.create(scb_join); 
-        var scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
+      const scb_join = {type: 1, securityCommandBuffer: {type: 1}};
+      const scb_join_message = CommandBuffer.create(scb_join); 
+      const scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
+
+      try {
+        client.activate();
         // setting content-type header is not mandatory, however a good practice
         client.publish({
-            destination: '/queue/COMMAND.IN',
-            binaryBody: scb_join_buffer,
-            headers: { 
-                'content-type': 'application/octet-stream',
-                'reply-to': '/queue/COMMAND.OUT.' + myuuid
-            },
+          destination: '/queue/COMMAND.IN',
+          binaryBody: scb_join_buffer,
+          headers: { 
+            'content-type': 'application/octet-stream',
+            'reply-to': '/queue/COMMAND.OUT.' + myuuid
+          },
         });
-    } catch (e) {
+      }
+      catch (e) {
         console.error('Error during client initialization');
         throw e;
         /* handle error */
-    }
+      }
 
-
-
-  // var config = {
-  //     type: Phaser.AUTO,
-  //     width: 800,
-  //     height: 600,
-  //     physics: {
-  //         default: 'arcade',
-  //         arcade: {
-  //             gravity: { y: 200 }
-  //         }
-  //     },
-  //     scene: {
-  //         preload: preload,
-  //         create: create
-  //     }
-  // };
-  
-  // var game = new Phaser.Game(config);
-  
-  // function preload ()
-  // {
-  //     this.load.setBaseURL('http://labs.phaser.io');
-  
-  //     this.load.image('sky', 'assets/skies/space3.png');
-  //     this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-  //     this.load.image('red', 'assets/particles/red.png');
-  // }
-  
-  // function create ()
-  // {
-  //     this.add.image(400, 300, 'sky');
-  
-  //     var particles = this.add.particles('red');
-  
-  //     var emitter = particles.createEmitter({
-  //         speed: 100,
-  //         scale: { start: 1, end: 0 },
-  //         blendMode: 'ADD'
-  //     });
-  
-  //     var logo = this.physics.add.image(400, 100, 'logo');
-  
-  //     logo.setVelocity(100, 200);
-  //     logo.setBounce(1, 1);
-  //     logo.setCollideWorldBounds(true);
-  
-  //     emitter.startFollow(logo);
-  // }
-      }());
+      // var config = {
+      //     type: Phaser.AUTO,
+      //     width: 800,
+      //     height: 600,
+      //     physics: {
+      //         default: 'arcade',
+      //         arcade: {
+      //             gravity: { y: 200 }
+      //         }
+      //     },
+      //     scene: {
+      //         preload: preload,
+      //         create: create
+      //     }
+      // };
+      
+      // var game = new Phaser.Game(config);
+      
+      // function preload ()
+      // {
+      //     this.load.setBaseURL('http://labs.phaser.io');
+      
+      //     this.load.image('sky', 'assets/skies/space3.png');
+      //     this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+      //     this.load.image('red', 'assets/particles/red.png');
+      // }
+      
+      // function create ()
+      // {
+      //     this.add.image(400, 300, 'sky');
+      
+      //     var particles = this.add.particles('red');
+      
+      //     var emitter = particles.createEmitter({
+      //         speed: 100,
+      //         scale: { start: 1, end: 0 },
+      //         blendMode: 'ADD'
+      //     });
+      
+      //     var logo = this.physics.add.image(400, 100, 'logo');
+      
+      //     logo.setVelocity(100, 200);
+      //     logo.setBounce(1, 1);
+      //     logo.setCollideWorldBounds(true);
+      
+      //     emitter.startFollow(logo);
+      // }
+    })();
   </script>
 
 </body>
