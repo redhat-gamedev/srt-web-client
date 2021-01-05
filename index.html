@@ -76,6 +76,18 @@
       },
     });
 
+    // the function when game event messages are received
+    game_event_message_callback = function (message) {
+      // called when the client receives a STOMP message from the server
+      if (message.body) {
+        alert('got message with body ' + message.body);
+      } else {
+        alert('got empty message');
+      }
+    };
+
+    // subscribe to the GAME.EVENT.OUT queue
+    var game_event_subscription = client.subscribe('/queue/GAME.EVENT.OUT', game_event_message_callback);
 
   // var config = {
   //     type: Phaser.AUTO,
