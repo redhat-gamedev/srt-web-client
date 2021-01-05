@@ -45,40 +45,35 @@
   
     client.activate();
 
-    // set up command buffer proto
-    var loadCommandBuffer = protobuf.load("../proto/CommandBuffer.proto").then(function(err, root) {
-      if (err)
-        throw err;
+    try {
+        // set up command buffer proto
+        var loadCommandBuffer = await protobuf.load("../proto/CommandBuffer.proto")
+        var CommandBuffer = loadCommandBuffer.lookupType("redhatgamedev.srt.CommandBuffer");
 
-      // Obtain a message type
-      return root.lookupType("redhatgamedev.srt.CommandBuffer");
-    });
+        // set up security buffer proto
+        var loadSecurityCommandBuffer = await protobuf.load("../proto/SecurityCommandBuffer.proto")
+        const SecurityCommandBuffer = loadSecurityCommandBuffer.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
 
-    // set up security buffer proto
-    var loadSecurityCommandBuffer = protobuf.load("../proto/SecurityCommandBuffer.proto").then(function(err, root) {
-      if (err)
-        throw err;
+        console.log('loaded', {CommandBuffer, SecurityCommandBuffer});
 
-      // Obtain message type
-      return root.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
-    });
+        var scb_join = {type: 1, securityCommandBuffer: {type: 1}};
+        var scb_join_message = CommandBuffer.create(scb_join); 
+        var scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
+        // setting content-type header is not mandatory, however a good practice
+        client.publish({
+            destination: '/queue/COMMAND.IN',
+            binaryBody: scb_join_buffer,
+            headers: { 
+                'content-type': 'application/octet-stream',
+                'reply-to': '/queue/COMMAND.OUT.' + myuuid
+            },
+        });
+    } catch (e) {
+        console.error('Error during client initialization');
+        throw e;
+        /* handle error */
+    }
 
-    const [CommandBuffer, SecurityCommandBuffer] = await Promise.all([ loadCommandBuffer, loadSecurityCommandBuffer ]);
-
-    console.log({CommandBuffer, SecurityCommandBuffer});
-
-    var scb_join = {type: 1, securityCommandBuffer: {type: 1}};
-    var scb_join_message = CommandBuffer.create(scb_join); 
-    var scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
-    // setting content-type header is not mandatory, however a good practice
-    client.publish({
-      destination: '/queue/COMMAND.IN',
-      binaryBody: scb_join_buffer,
-      headers: { 
-        'content-type': 'application/octet-stream',
-        'reply-to': '/queue/COMMAND.OUT.' + myuuid
-      },
-    });
 
     // the function when game event messages are received
     game_event_message_callback = function (message) {
