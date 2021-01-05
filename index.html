@@ -13,7 +13,9 @@
   (async function() {
 
     // identify us during the session
-    var myuuid = uuidv4();
+    const myuuid = uuidv4();
+
+    const players = {};
 
     const client = new StompJs.Client({
       brokerURL: 'ws://10.88.0.11:61613',
@@ -22,7 +24,7 @@
         passcode: 'password',
       },
       debug: function (str) {
-        console.log(str);
+        //console.log(str);
       },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
@@ -47,18 +49,21 @@
 
     try {
         // set up command buffer proto
-        var loadCommandBuffer = await protobuf.load("../proto/CommandBuffer.proto")
-        var CommandBuffer = loadCommandBuffer.lookupType("redhatgamedev.srt.CommandBuffer");
+        const loadCommandBuffer = await protobuf.load("../proto/CommandBuffer.proto");
+        const CommandBuffer = loadCommandBuffer.lookupType("redhatgamedev.srt.CommandBuffer");
 
         // set up security buffer proto
-        var loadSecurityCommandBuffer = await protobuf.load("../proto/SecurityCommandBuffer.proto")
-        const SecurityCommandBuffer = loadSecurityCommandBuffer.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
+        //const loadSecurityCommandBuffer = await protobuf.load("../proto/SecurityCommandBuffer.proto");
+        //const SecurityCommandBuffer = loadSecurityCommandBuffer.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
 
-        console.log('loaded', {CommandBuffer, SecurityCommandBuffer});
+        const loadEntityGameEventBuffer = await protobuf.load("../proto/EntityGameEventBuffer.proto");
+        const EntityGameEventBuffer = loadEntityGameEventBuffer.lookupType("redhatgamedev.srt.EntityGameEventBuffer");
 
-        var scb_join = {type: 1, securityCommandBuffer: {type: 1}};
-        var scb_join_message = CommandBuffer.create(scb_join); 
-        var scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
+        console.log('loaded', {CommandBuffer, EntityGameEventBuffer});
+
+        const scb_join = {type: 1, securityCommandBuffer: {type: 1}};
+        const scb_join_message = CommandBuffer.create(scb_join); 
+        const scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
         // setting content-type header is not mandatory, however a good practice
         client.publish({
             destination: '/queue/COMMAND.IN',
@@ -68,73 +73,65 @@
                 'reply-to': '/queue/COMMAND.OUT.' + myuuid
             },
         });
-    } catch (e) {
-        console.error('Error during client initialization');
-        throw e;
-        /* handle error */
-    }
 
+        // the function when game event messages are received
+        game_event_message_callback = function (message) {
+          // called when the client receives a STOMP message from the server
+          if (message.binaryBody) {
+            const decoded_event_message = EntityGameEventBuffer.decode(message.binaryBody);
+            //console.log(decoded_event_message);
 
-    // the function when game event messages are received
-    game_event_message_callback = function (message) {
-      // called when the client receives a STOMP message from the server
-      if (message.body) {
-        alert('got message with body ' + message.body);
-      } else {
-        alert('got empty message');
-      }
-    };
+            players[decoded_event_message.UUID] = decoded_event_message
+            //alert('got message with body ' + message.body);
+          } else {
+            //alert('got empty message');
+          }
+        };
 
-    // subscribe to the GAME.EVENT.OUT queue
-    var game_event_subscription = client.subscribe('/queue/GAME.EVENT.OUT', game_event_message_callback);
+        // subscribe to the GAME.EVENT.OUT queue
+        var game_event_subscription = client.subscribe('/topic/GAME.EVENT.OUT', game_event_message_callback);
 
-  // var config = {
-  //     type: Phaser.AUTO,
-  //     width: 800,
-  //     height: 600,
-  //     physics: {
-  //         default: 'arcade',
-  //         arcade: {
-  //             gravity: { y: 200 }
-  //         }
-  //     },
-  //     scene: {
-  //         preload: preload,
-  //         create: create
-  //     }
-  // };
-  
-  // var game = new Phaser.Game(config);
-  
-  // function preload ()
-  // {
-  //     this.load.setBaseURL('http://labs.phaser.io');
-  
-  //     this.load.image('sky', 'assets/skies/space3.png');
-  //     this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-  //     this.load.image('red', 'assets/particles/red.png');
-  // }
-  
-  // function create ()
-  // {
-  //     this.add.image(400, 300, 'sky');
-  
-  //     var particles = this.add.particles('red');
-  
-  //     var emitter = particles.createEmitter({
-  //         speed: 100,
-  //         scale: { start: 1, end: 0 },
-  //         blendMode: 'ADD'
-  //     });
-  
-  //     var logo = this.physics.add.image(400, 100, 'logo');
-  
-  //     logo.setVelocity(100, 200);
-  //     logo.setBounce(1, 1);
-  //     logo.setCollideWorldBounds(true);
-  
-  //     emitter.startFollow(logo);
-  // }
+        var config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 200 }
+                }
+            },
+            scene: {
+                preload: preload,
+                update: update
+            }
+        };
+        
+        var game = new Phaser.Game(config);
+        
+        function preload ()
+        {
+            //this.load.setBaseURL('http://labs.phaser.io');
+        
+            //this.load.image('sky', 'assets/skies/space3.png');
+            //this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+            //this.load.image('red', 'assets/particles/red.png');
+        }
+        
+        function update()
+        {
+          //console.log(players); 
+          Object.values(players).forEach (player=>{
+            //console.log(player);
+          });
+        
+        }
+        } catch (e) {
+            console.error('Error during client initialization');
+            throw e;
+            /* handle error */
+        }
+
       }());
   </script>
 
