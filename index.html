@@ -8,12 +8,13 @@
     <script src="javascript/CommandBuffer-proto.js"></script>
     <script src="javascript/box2d-proto.js"></script>
     <script src="javascript/SecurityCommandBuffer-proto.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uuid@latest/dist/umd/uuidv4.min.js"></script>
 </head>
 <body>
 
   <script>
     const client = new StompJs.Client({
-      brokerURL: 'ws://10.88.0.9:61613',
+      brokerURL: 'ws://10.88.0.11:61613',
       connectHeaders: {
         login: 'user',
         passcode: 'password',
@@ -44,12 +45,12 @@
 
     function join_server() {
       SecurityCommandBuffer_SecurityCommandBuffer;
-      var scb_join = {type: 1};
+      var scb_join = {type: 1, UUID: uuidv4(), joinSecurityCommandBuffer: 1};
       var scb_join_message = SecurityCommandBuffer_SecurityCommandBuffer.create(scb_join); 
       var scb_join_buffer = SecurityCommandBuffer_SecurityCommandBuffer.encode(scb_join_message).finish();
       // setting content-type header is not mandatory, however a good practice
       client.publish({
-        destination: 'COMMAND.IN',
+        destination: '/queue/COMMAND.IN',
         binaryBody: scb_join_buffer,
         headers: { 'content-type': 'application/octet-stream' },
       });
