@@ -5,14 +5,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.0.0/bundles/stomp.umd.min.js"></script>
     <script src="javascript/rhea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/protobufjs@6.10.2/dist/protobuf.js"></script>
-    <script src="javascript/CommandBuffer-proto.js"></script>
-    <script src="javascript/box2d-proto.js"></script>
-    <script src="javascript/SecurityCommandBuffer-proto.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uuid@latest/dist/umd/uuidv4.min.js"></script>
 </head>
 <body>
 
   <script>
+    // identify us during the session
+    var myuuid = uuidv4();
+
     const client = new StompJs.Client({
       brokerURL: 'ws://10.88.0.11:61613',
       connectHeaders: {
@@ -43,18 +43,38 @@
   
     client.activate();
 
-    function join_server() {
-      SecurityCommandBuffer_SecurityCommandBuffer;
-      var scb_join = {type: 1, UUID: uuidv4(), joinSecurityCommandBuffer: 1};
-      var scb_join_message = SecurityCommandBuffer_SecurityCommandBuffer.create(scb_join); 
-      var scb_join_buffer = SecurityCommandBuffer_SecurityCommandBuffer.encode(scb_join_message).finish();
-      // setting content-type header is not mandatory, however a good practice
-      client.publish({
-        destination: '/queue/COMMAND.IN',
-        binaryBody: scb_join_buffer,
-        headers: { 'content-type': 'application/octet-stream' },
-      });
-    }
+    // set up command buffer proto
+    var CommandBuffer
+    protobuf.load("../proto/CommandBuffer.proto", function(err, root) {
+      if (err)
+        throw err;
+      
+      // Obtain a message type
+      CommandBuffer = root.lookupType("redhatgamedev.srt.CommandBuffer");
+    });
+
+    // set up security buffer proto
+    var SecurityCommandBuffer
+    protobuf.load("../proto/SecurityCommandBuffer.proto", function(err, root) {
+      if (err)
+        throw err;
+    
+      // Obtain message type
+      SecurityCommandBuffer = root.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
+    });
+
+    var scb_join = {type: 1, securityCommandBuffer: {type: 1}};
+    var scb_join_message = CommandBuffer.create(scb_join); 
+    var scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
+    // setting content-type header is not mandatory, however a good practice
+    client.publish({
+      destination: '/queue/COMMAND.IN',
+      binaryBody: scb_join_buffer,
+      headers: { 
+        'content-type': 'application/octet-stream',
+        'reply-to': '/queue/COMMAND.OUT.' + myuuid
+      },
+    });
 
 
   // var config = {
