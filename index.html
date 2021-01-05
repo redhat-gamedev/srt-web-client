@@ -10,6 +10,8 @@
 <body>
 
   <script>
+  (async function() {
+
     // identify us during the session
     var myuuid = uuidv4();
 
@@ -44,24 +46,26 @@
     client.activate();
 
     // set up command buffer proto
-    var CommandBuffer
-    protobuf.load("../proto/CommandBuffer.proto", function(err, root) {
+    var loadCommandBuffer = protobuf.load("../proto/CommandBuffer.proto").then(function(err, root) {
       if (err)
         throw err;
-      
+
       // Obtain a message type
-      CommandBuffer = root.lookupType("redhatgamedev.srt.CommandBuffer");
+      return root.lookupType("redhatgamedev.srt.CommandBuffer");
     });
 
     // set up security buffer proto
-    var SecurityCommandBuffer
-    protobuf.load("../proto/SecurityCommandBuffer.proto", function(err, root) {
+    var loadSecurityCommandBuffer = protobuf.load("../proto/SecurityCommandBuffer.proto").then(function(err, root) {
       if (err)
         throw err;
-    
+
       // Obtain message type
-      SecurityCommandBuffer = root.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
+      return root.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
     });
+
+    const [CommandBuffer, SecurityCommandBuffer] = await Promise.all([ loadCommandBuffer, loadSecurityCommandBuffer ]);
+
+    console.log({CommandBuffer, SecurityCommandBuffer});
 
     var scb_join = {type: 1, securityCommandBuffer: {type: 1}};
     var scb_join_message = CommandBuffer.create(scb_join); 
@@ -124,6 +128,7 @@
   
   //     emitter.startFollow(logo);
   // }
+      }());
   </script>
 
 </body>
