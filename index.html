@@ -16,6 +16,55 @@
 
     const players = {};
 
+    const resolution_width = 800;
+    const resolution_height = 600;
+
+    var config = {
+      type: Phaser.AUTO,
+      width: resolution_width,
+      height: resolution_height,
+      physics: {
+          default: 'arcade',
+          arcade: {
+              debug: true
+          }
+        },
+      scene: {
+        create: create,
+        preload: preload,
+        update: update
+      }
+    };
+    
+    var graphics;
+
+    var game = new Phaser.Game(config);
+
+    var player_group;
+
+    function create () {
+      player_group = this.physics.add.group({
+          collideWorldBounds: true
+      });
+    }
+    
+    function preload () {
+      //this.load.setBaseURL('http://labs.phaser.io');
+    
+      this.load.image('spacepod', 'images/spacepod.png');
+    }
+    
+    function update() {
+      //console.log(players); 
+      Object.values(players).forEach (player=>{
+        // if the player has no phaser group object, create one
+        if (player.stuff.phaser_group == null) {
+          player.stuff.phaser_group = player_group.create(resolution_width/2,resolution_height/2, 'spacepod');
+        }
+        //console.log(player);
+      });
+    }
+
     (async function() {
 
       const client = new StompJs.Client({
@@ -120,45 +169,6 @@
           // subscribe to the GAME.EVENT.OUT queue
           var game_event_subscription = client.subscribe('/topic/GAME.EVENT.OUT', game_event_message_callback);
 
-          var config = {
-              type: Phaser.AUTO,
-              width: 800,
-              height: 600,
-              physics: {
-                  default: 'arcade',
-                  arcade: {
-                      gravity: { y: 200 }
-                  }
-              },
-              scene: {
-                  preload: preload,
-                  update: update
-              }
-          };
-          
-          var game = new Phaser.Game(config);
-          
-          function preload ()
-            {
-                //this.load.setBaseURL('http://labs.phaser.io');
-          
-                //this.load.image('sky', 'assets/skies/space3.png');
-                //this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-                //this.load.image('red', 'assets/particles/red.png');
-            }
-          
-          function update()
-            {
-              //console.log(players); 
-              Object.values(players).forEach (player=>{
-                // if the player has no point, create one
-                if (player.stuff.point == null) {
-                  player.stuff.point = new Phaser.Point();
-                }
-                //console.log(player);
-              });
-          
-            }
           } catch (e) {
               console.error('Error during client initialization');
               throw e;
