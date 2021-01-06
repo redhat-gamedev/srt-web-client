@@ -10,129 +10,164 @@
 <body>
 
   <script>
-  (async function() {
-
     // identify us during the session
-    const myuuid = uuidv4();
+    //const myuuid = uuidv4();
+    const myuuid = '3ef0eb3a-6b33-4f5e-924a-79b3bd1e72d8';
 
     const players = {};
 
-    const client = new StompJs.Client({
-      brokerURL: 'ws://10.88.0.11:61613',
-      connectHeaders: {
-        login: 'user',
-        passcode: 'password',
-      },
-      debug: function (str) {
-        //console.log(str);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-    });
+    (async function() {
+
+      const client = new StompJs.Client({
+        brokerURL: 'ws://10.88.0.12:61613',
+        connectHeaders: {
+          login: 'user',
+          passcode: 'password',
+        },
+        debug: function (str) {
+          //console.log(str);
+        },
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+      });
   
-    client.onConnect = function (frame) {
-      // Do something, all subscribes must be done is this callback
-      // This is needed because this will be executed after a (re)connect
-    };
+      client.onConnect = function (frame) {
+        // Do something, all subscribes must be done is this callback
+        // This is needed because this will be executed after a (re)connect
+      };
   
-    client.onStompError = function (frame) {
-      // Will be invoked in case of error encountered at Broker
-      // Bad login/passcode typically will cause an error
-      // Complaint brokers will set `message` header with a brief message. Body may contain details.
-      // Compliant brokers will terminate the connection after any error
-      console.log('Broker reported error: ' + frame.headers['message']);
-      console.log('Additional details: ' + frame.body);
-    };
+      client.onStompError = function (frame) {
+        // Will be invoked in case of error encountered at Broker
+        // Bad login/passcode typically will cause an error
+        // Complaint brokers will set `message` header with a brief message. Body may contain details.
+        // Compliant brokers will terminate the connection after any error
+        console.log('Broker reported error: ' + frame.headers['message']);
+        console.log('Additional details: ' + frame.body);
+      };
   
-    client.activate();
+      client.activate();
 
-    try {
-        // set up command buffer proto
-        const loadCommandBuffer = await protobuf.load("../proto/CommandBuffer.proto");
-        const CommandBuffer = loadCommandBuffer.lookupType("redhatgamedev.srt.CommandBuffer");
+      try {
+          const loadCommandBuffer = await protobuf.load("../proto/CommandBuffer.proto");
+          const CommandBuffer = loadCommandBuffer.lookupType("redhatgamedev.srt.CommandBuffer");
 
-        // set up security buffer proto
-        //const loadSecurityCommandBuffer = await protobuf.load("../proto/SecurityCommandBuffer.proto");
-        //const SecurityCommandBuffer = loadSecurityCommandBuffer.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
+          const loadSecurityCommandBuffer = await protobuf.load("../proto/SecurityCommandBuffer.proto");
+          const SecurityCommandBuffer = loadSecurityCommandBuffer.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
 
-        const loadEntityGameEventBuffer = await protobuf.load("../proto/EntityGameEventBuffer.proto");
-        const EntityGameEventBuffer = loadEntityGameEventBuffer.lookupType("redhatgamedev.srt.EntityGameEventBuffer");
+          const loadGameEventBuffer = await protobuf.load("../proto/GameEventBuffer.proto");
+          const GameEventBuffer = loadGameEventBuffer.lookupType("redhatgamedev.srt.GameEventBuffer");
 
-        console.log('loaded', {CommandBuffer, EntityGameEventBuffer});
+          const loadEntityGameEventBuffer = await protobuf.load("../proto/EntityGameEventBuffer.proto");
+          const EntityGameEventBuffer = loadEntityGameEventBuffer.lookupType("redhatgamedev.srt.EntityGameEventBuffer");
 
-        const scb_join = {type: 1, securityCommandBuffer: {type: 1}};
-        const scb_join_message = CommandBuffer.create(scb_join); 
-        const scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
-        // setting content-type header is not mandatory, however a good practice
-        client.publish({
-            destination: '/queue/COMMAND.IN',
-            binaryBody: scb_join_buffer,
-            headers: { 
-                'content-type': 'application/octet-stream',
-                'reply-to': '/queue/COMMAND.OUT.' + myuuid
-            },
-        });
+          //console.log('loaded', {CommandBuffer, EntityGameEventBuffer});
 
-        // the function when game event messages are received
-        game_event_message_callback = function (message) {
-          // called when the client receives a STOMP message from the server
-          if (message.binaryBody) {
-            const decoded_event_message = EntityGameEventBuffer.decode(message.binaryBody);
-            //console.log(decoded_event_message);
-
-            players[decoded_event_message.UUID] = decoded_event_message
-            //alert('got message with body ' + message.body);
-          } else {
-            //alert('got empty message');
-          }
-        };
-
-        // subscribe to the GAME.EVENT.OUT queue
-        var game_event_subscription = client.subscribe('/topic/GAME.EVENT.OUT', game_event_message_callback);
-
-        var config = {
-            type: Phaser.AUTO,
-            width: 800,
-            height: 600,
-            physics: {
-                default: 'arcade',
-                arcade: {
-                    gravity: { y: 200 }
-                }
-            },
-            scene: {
-                preload: preload,
-                update: update
-            }
-        };
-        
-        var game = new Phaser.Game(config);
-        
-        function preload ()
-        {
-            //this.load.setBaseURL('http://labs.phaser.io');
-        
-            //this.load.image('sky', 'assets/skies/space3.png');
-            //this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-            //this.load.image('red', 'assets/particles/red.png');
-        }
-        
-        function update()
-        {
-          //console.log(players); 
-          Object.values(players).forEach (player=>{
-            //console.log(player);
+          const scb_join = {type: 1, securityCommandBuffer: {type: 1}};
+          const scb_join_message = CommandBuffer.create(scb_join); 
+          const scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
+          // setting content-type header is not mandatory, however a good practice
+          client.publish({
+              destination: '/queue/COMMAND.IN',
+              binaryBody: scb_join_buffer,
+              headers: { 
+                  'content-type': 'application/octet-stream',
+                  'reply-to': '/queue/COMMAND.OUT.' + myuuid
+              },
           });
-        
-        }
-        } catch (e) {
-            console.error('Error during client initialization');
-            throw e;
-            /* handle error */
-        }
 
-      }());
+          process_security_game_event = function (buffer) {
+            switch(buffer.type) {
+              case 1:
+                console.log('a player joined: ' + buffer.joinSecurityGameEventBuffer.UUID);
+                // a security game event with a type of 1 is a player join
+                // create an entity in the player array with the incoming uuid
+                players[buffer.joinSecurityGameEventBuffer.UUID] = { body: "", stuff: "" }
+                break;
+            }
+          };
+
+          process_entity_game_event = function (buffer) {
+            // just store the pbbody details for the player
+            players[buffer.UUID].body = buffer.body;
+          };
+
+          // the function when game event messages are received
+          game_event_message_callback = function (message) {
+            // called when the client receives a STOMP message from the server
+            if (message.binaryBody) {
+              // we always receive a gameevent
+              const decoded_event_message = GameEventBuffer.decode(message.binaryBody);
+              console.log(decoded_event_message);
+
+              // check on what type of game event we received
+              switch(decoded_event_message.type) {
+                case 2:
+                  console.log('got a security event');
+                  // security message
+                  process_security_game_event(decoded_event_message.securityGameEventBuffer);
+                  break;
+                case 1:
+                  // entity game event buffer is about a specific player
+                  process_entity_game_event(decoded_event_message.entityGameEventBuffer);
+                  break;
+              }
+            } else {
+              console.log('for some reason we got a message with no binary boddy');
+            }
+          };
+
+          // subscribe to the GAME.EVENT.OUT queue
+          var game_event_subscription = client.subscribe('/topic/GAME.EVENT.OUT', game_event_message_callback);
+
+          var config = {
+              type: Phaser.AUTO,
+              width: 800,
+              height: 600,
+              physics: {
+                  default: 'arcade',
+                  arcade: {
+                      gravity: { y: 200 }
+                  }
+              },
+              scene: {
+                  preload: preload,
+                  update: update
+              }
+          };
+          
+          var game = new Phaser.Game(config);
+          
+          function preload ()
+            {
+                //this.load.setBaseURL('http://labs.phaser.io');
+          
+                //this.load.image('sky', 'assets/skies/space3.png');
+                //this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+                //this.load.image('red', 'assets/particles/red.png');
+            }
+          
+          function update()
+            {
+              //console.log(players); 
+              Object.values(players).forEach (player=>{
+                // if the player has no point, create one
+                if (player.stuff.point == null) {
+                  player.stuff.point = new Phaser.Point();
+                }
+                //console.log(player);
+              });
+          
+            }
+          } catch (e) {
+              console.error('Error during client initialization');
+              throw e;
+              /* handle error */
+          }
+
+      }
+      
+    ());
   </script>
 
 </body>
