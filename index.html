@@ -10,15 +10,24 @@
 <body>
 
   <script>
-    // identify us during the session
-    //const myuuid = uuidv4();
-    const myuuid = '3ef0eb3a-6b33-4f5e-924a-79b3bd1e72d8';
+    // used to tell the server where to send event messages
+    const myuuid = uuidv4();
+
+    // our unique player id for sending our commands
+    var player_uuid = "";
 
     const players = {};
 
+    // protobuf stuff
+    var CommandBuffer;
+    var SecurityCommandBuffer;
+    var GameEventBuffer;
+    var EntityGameEventBuffer;
+    var RawInputCommandBuffer;
+
+    // phaser stuff
     const resolution_width = 800;
     const resolution_height = 600;
-
     var config = {
       type: Phaser.AUTO,
       width: resolution_width,
@@ -37,15 +46,17 @@
     };
     
     var graphics;
+    var player_group;
+    var cursors;
 
     var game = new Phaser.Game(config);
 
-    var player_group;
 
     function create () {
       player_group = this.physics.add.group({
           collideWorldBounds: true
       });
+      cursors = this.input.keyboard.createCursorKeys();
     }
     
     function preload () {
@@ -55,19 +66,80 @@
     }
     
     function update() {
-      //console.log(players); 
+      // iterate over the players and draw their last known location
       Object.values(players).forEach (player=>{
-        // if the player has no phaser group object, create one
-        if (player.stuff.phaser_group == null) {
-          player.stuff.phaser_group = player_group.create(resolution_width/2,resolution_height/2, 'spacepod');
+
+        // don't do anything if we don't have a body object for the player yet
+        if (player.body != null) {
+          // if the player has no phaser group object, create one
+          if (player.stuff.phaser_group == null) {
+            const xpos = player.body.position.x + (resolution_width/2);
+            const ypos = player.body.position.y + (resolution_height/2);
+            player.stuff.phaser_group = player_group.create(xpos, ypos, 'spacepod');
+          } else {
+            // otherwise just update the group's position
+            player.stuff.phaser_group.x = player.body.position.x + (resolution_width/2);
+            player.stuff.phaser_group.y = player.body.position.y + (resolution_height/2);
+          };
         }
         //console.log(player);
       });
-    }
+
+      var xmove = 0;
+      var ymove = 0;
+
+      // grab keyboard input to move our player
+      if (cursors.left.isDown) {
+        xmove = -1;
+      }
+      else if (cursors.right.isDown) {
+        xmove = 1;
+      };
+
+      if (cursors.up.isDown) {
+        ymove = -1;
+      }
+      else if (cursors.down.isDown) {
+        ymove = 1;
+      }
+
+      // handle keyboard stuff
+      if ((xmove != 0) || (ymove != 0)) {
+        const keyboard_input = {
+          type: 2, 
+          rawInputCommandBuffer: {
+            type: 1, 
+            UUID: player_uuid, 
+            dualStickRawInputCommandBuffer: { 
+              pbv2Move: {
+                x: xmove, y: ymove
+              }, 
+              pbv2Shoot: {
+                x: 0, y: 0
+              } 
+            } 
+          }
+        };
+        const keyboard_message = CommandBuffer.create(keyboard_input);
+        const keyboard_buffer = CommandBuffer.encode(keyboard_message).finish();
+        client.publish({
+          destination: '/queue/COMMAND.IN', 
+          binaryBody: keyboard_buffer, 
+          headers: { 
+            'content-type': 'application/octet-stream',
+            'reply-to': '/queue/COMMAND.OUT.' + myuuid
+          }
+        });
+      }
+
+    };
+
+    // messaging stuff
+    var client;
 
     (async function() {
 
-      const client = new StompJs.Client({
+      client = new StompJs.Client({
         brokerURL: 'ws://10.88.0.12:61613',
         connectHeaders: {
           login: 'user',
@@ -99,19 +171,23 @@
 
       try {
           const loadCommandBuffer = await protobuf.load("../proto/CommandBuffer.proto");
-          const CommandBuffer = loadCommandBuffer.lookupType("redhatgamedev.srt.CommandBuffer");
+          CommandBuffer = loadCommandBuffer.lookupType("redhatgamedev.srt.CommandBuffer");
 
           const loadSecurityCommandBuffer = await protobuf.load("../proto/SecurityCommandBuffer.proto");
-          const SecurityCommandBuffer = loadSecurityCommandBuffer.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
+          SecurityCommandBuffer = loadSecurityCommandBuffer.lookupType("redhatgamedev.srt.SecurityCommandBuffer");
 
           const loadGameEventBuffer = await protobuf.load("../proto/GameEventBuffer.proto");
-          const GameEventBuffer = loadGameEventBuffer.lookupType("redhatgamedev.srt.GameEventBuffer");
+          GameEventBuffer = loadGameEventBuffer.lookupType("redhatgamedev.srt.GameEventBuffer");
 
           const loadEntityGameEventBuffer = await protobuf.load("../proto/EntityGameEventBuffer.proto");
-          const EntityGameEventBuffer = loadEntityGameEventBuffer.lookupType("redhatgamedev.srt.EntityGameEventBuffer");
+          EntityGameEventBuffer = loadEntityGameEventBuffer.lookupType("redhatgamedev.srt.EntityGameEventBuffer");
+
+          const loadRawInputCommandBuffer = await protobuf.load("../proto/RawInputCommandBuffer.proto");
+          RawInputCommandBuffer = loadRawInputCommandBuffer.lookupType("redhatgamedev.srt.RawInputCommandBuffer");
 
           //console.log('loaded', {CommandBuffer, EntityGameEventBuffer});
 
+          // there can be only one -- join, that is
           const scb_join = {type: 1, securityCommandBuffer: {type: 1}};
           const scb_join_message = CommandBuffer.create(scb_join); 
           const scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
@@ -131,7 +207,7 @@
                 console.log('a player joined: ' + buffer.joinSecurityGameEventBuffer.UUID);
                 // a security game event with a type of 1 is a player join
                 // create an entity in the player array with the incoming uuid
-                players[buffer.joinSecurityGameEventBuffer.UUID] = { body: "", stuff: "" }
+                players[buffer.joinSecurityGameEventBuffer.UUID] = { body: null, stuff: {} }
                 break;
             }
           };
@@ -147,12 +223,13 @@
             if (message.binaryBody) {
               // we always receive a gameevent
               const decoded_event_message = GameEventBuffer.decode(message.binaryBody);
-              console.log(decoded_event_message);
+              //console.log(decoded_event_message);
 
               // check on what type of game event we received
               switch(decoded_event_message.type) {
                 case 2:
                   console.log('got a security event');
+                  //console.log(decoded_event_message);
                   // security message
                   process_security_game_event(decoded_event_message.securityGameEventBuffer);
                   break;
@@ -166,8 +243,18 @@
             }
           };
 
+          command_message_callback = function(message) {
+            console.log('got a command message');
+            if (message.binaryBody) {
+              // the command message is just our unique player UUID
+              player_uuid = new TextDecoder("utf-8").decode(message.binaryBody);
+              console.log('unique player uuid: ' + player_uuid);
+            }
+          };
+
           // subscribe to the GAME.EVENT.OUT queue
           var game_event_subscription = client.subscribe('/topic/GAME.EVENT.OUT', game_event_message_callback);
+          var my_command_subscription = client.subscribe('/queue/COMMAND.OUT.' + myuuid, command_message_callback);
 
           } catch (e) {
               console.error('Error during client initialization');
