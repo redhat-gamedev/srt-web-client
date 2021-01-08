@@ -90,17 +90,17 @@
 
       // grab keyboard input to move our player
       if (cursors.left.isDown) {
-        xmove = -1;
+        xmove = -50;
       }
       else if (cursors.right.isDown) {
-        xmove = 1;
+        xmove = 50;
       };
 
       if (cursors.up.isDown) {
-        ymove = -1;
+        ymove = -50;
       }
       else if (cursors.down.isDown) {
-        ymove = 1;
+        ymove = 50;
       }
 
       // handle keyboard stuff
@@ -140,7 +140,7 @@
     (async function() {
 
       client = new StompJs.Client({
-        brokerURL: 'ws://10.88.0.12:61613',
+        brokerURL: 'ws://10.88.0.13:61613',
         connectHeaders: {
           login: 'user',
           passcode: 'password',
@@ -201,18 +201,26 @@
               },
           });
 
+          player_initialize = function (UUID) {
+            players[UUID] = { body: null, stuff: {}};
+          }
+
           process_security_game_event = function (buffer) {
             switch(buffer.type) {
               case 1:
                 console.log('a player joined: ' + buffer.joinSecurityGameEventBuffer.UUID);
                 // a security game event with a type of 1 is a player join
                 // create an entity in the player array with the incoming uuid
-                players[buffer.joinSecurityGameEventBuffer.UUID] = { body: null, stuff: {} }
+                player_initialize(buffer.joinSecurityGameEventBuffer.UUID);
                 break;
             }
           };
 
           process_entity_game_event = function (buffer) {
+            if (players[buffer.UUID] == null) {
+              console.log('found a player we don\'t know about');
+              player_initialize(buffer.UUID);
+            };
             // just store the pbbody details for the player
             players[buffer.UUID].body = buffer.body;
           };
