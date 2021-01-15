@@ -11,10 +11,14 @@
 
   <script>
     // used to tell the server where to send event messages
-    const myuuid = uuidv4();
+    //const myuuid = uuidv4();
+    const myuuid="thoraxe"
 
     // our unique player id for sending our commands
     var player_uuid = "";
+
+    // the broker endpoint
+    const broker_endpoint="10.88.0.15"
 
     const players = {};
 
@@ -140,7 +144,7 @@
     (async function() {
 
       client = new StompJs.Client({
-        brokerURL: 'ws://10.88.0.13:61613',
+        brokerURL: 'ws://' + broker_endpoint + ':61613',
         connectHeaders: {
           login: 'user',
           passcode: 'password',
@@ -188,7 +192,7 @@
           //console.log('loaded', {CommandBuffer, EntityGameEventBuffer});
 
           // there can be only one -- join, that is
-          const scb_join = {type: 1, securityCommandBuffer: {type: 1}};
+          const scb_join = {type: 1, securityCommandBuffer: {type: 1, UUID: myuuid}};
           const scb_join_message = CommandBuffer.create(scb_join); 
           const scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
           // setting content-type header is not mandatory, however a good practice
