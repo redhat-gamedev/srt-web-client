@@ -11,14 +11,16 @@
 
   <script>
     // used to tell the server where to send event messages
-    //const myuuid = uuidv4();
-    const myuuid="thoraxe"
+    const myuuid = uuidv4();
+    //const myuuid="thoraxe"
 
     // our unique player id for sending our commands
     var player_uuid = "";
 
+    const force_multiplier = 200;
+
     // the broker endpoint
-    const broker_endpoint="10.88.0.15"
+    const broker_endpoint="10.88.0.21"
 
     const players = {};
 
@@ -94,17 +96,17 @@
 
       // grab keyboard input to move our player
       if (cursors.left.isDown) {
-        xmove = -50;
+        xmove = -1 * force_multiplier;
       }
       else if (cursors.right.isDown) {
-        xmove = 50;
+        xmove = 1 * force_multiplier;
       };
 
       if (cursors.up.isDown) {
-        ymove = -50;
+        ymove = 1 * force_multiplier;
       }
       else if (cursors.down.isDown) {
-        ymove = 50;
+        ymove = 1 * force_multiplier;
       }
 
       // handle keyboard stuff
@@ -127,11 +129,11 @@
         const keyboard_message = CommandBuffer.create(keyboard_input);
         const keyboard_buffer = CommandBuffer.encode(keyboard_message).finish();
         client.publish({
-          destination: '/queue/COMMAND.IN', 
+          destination: 'COMMAND.IN', 
           binaryBody: keyboard_buffer, 
           headers: { 
             'content-type': 'application/octet-stream',
-            'reply-to': '/queue/COMMAND.OUT.' + myuuid
+            'reply-to': 'COMMAND.OUT.' + myuuid
           }
         });
       }
@@ -197,11 +199,11 @@
           const scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
           // setting content-type header is not mandatory, however a good practice
           client.publish({
-              destination: '/queue/COMMAND.IN',
+              destination: 'COMMAND.IN',
               binaryBody: scb_join_buffer,
               headers: { 
                   'content-type': 'application/octet-stream',
-                  'reply-to': '/queue/COMMAND.OUT.' + myuuid
+                  'reply-to': 'COMMAND.OUT.' + myuuid
               },
           });
 
@@ -265,8 +267,8 @@
           };
 
           // subscribe to the GAME.EVENT.OUT queue
-          var game_event_subscription = client.subscribe('/topic/GAME.EVENT.OUT', game_event_message_callback);
-          var my_command_subscription = client.subscribe('/queue/COMMAND.OUT.' + myuuid, command_message_callback);
+          var game_event_subscription = client.subscribe('GAME.EVENT.OUT', game_event_message_callback);
+          var my_command_subscription = client.subscribe('COMMAND.OUT.' + myuuid, command_message_callback);
 
           } catch (e) {
               console.error('Error during client initialization');
