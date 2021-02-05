@@ -189,16 +189,6 @@
     //
     //   client.activate();
 
-        var requests = 10;
-        var current = 1;
-        var sent = 0;
-
-        function next_request() {
-            var msg = 'request-' + current;
-            sender.send({body:msg})
-            console.log('sent ' + msg);
-        }
-
         client.on('connection_open', function (context) {
             console.log("AMQP connection open to " + server)
         });
@@ -214,17 +204,11 @@
         // i.e. received a message
         client.on('message', function (context) {
             console.log('received ' + context.message.body);
-            if (current++ < requests) {
-                next_request();
-            } else {
-                context.connection.close();
-            }
         });
 
         // i.e. we have credit to do a send
         client.on('sendable', function (context) {
             console.log('sendable');
-            // next_request();
         });
 
         client.on('disconnected', function (context) {
@@ -271,8 +255,8 @@
 
             var amqp_message = client.message;
             var body = amqp_message.data_section(scb_join_buffer);
-            // sender.send({client.types.wrap_binary(scb_join_buffer)});
-            sender.send({message_id:sent, body});
+            // sender.send({message_id:sent, body});
+            sender.send({body});
             sent++;
 
           player_initialize = function (UUID) {
