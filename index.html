@@ -191,6 +191,7 @@
 
         var requests = 10;
         var current = 1;
+        var sent = 0;
 
         function next_request() {
             var msg = 'request-' + current;
@@ -267,7 +268,12 @@
             // AMQP stuff
             // TODO: This is likely wrong as we're dumping in the protobuf when we should be dumping in a message
             // containing a protobuf as the data section
-            sender.send(scb_join_buffer);
+
+            var amqp_message = client.message;
+            var body = amqp_message.data_section(scb_join_buffer);
+            // sender.send({client.types.wrap_binary(scb_join_buffer)});
+            sender.send({message_id:sent, body});
+            sent++;
 
           player_initialize = function (UUID) {
             players[UUID] = { body: null, stuff: {}};
