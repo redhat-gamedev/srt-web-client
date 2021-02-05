@@ -3,9 +3,12 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.24.1/dist/phaser-arcade-physics.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.0.0/bundles/stomp.umd.min.js"></script>
-    <script src="javascript/rhea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/protobufjs@6.10.2/dist/protobuf.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uuid@latest/dist/umd/uuidv4.min.js"></script>
+<!--    <script src="https://cdn.jsdelivr.net/npm/util@0.12.3/util.min.js"></script>-->
+<!--    <script src="https://cdn.jsdelivr.net/npm/minimist@1.2.5/index.min.js"></script>-->
+    <script src="javascript/rhea.js"></script>
+<!--    <script src="javascript/options.js"></script>-->
 </head>
 <body>
 
@@ -20,7 +23,8 @@
     const force_multiplier = 200;
 
     // the broker endpoint
-    const broker_endpoint="10.88.0.21"
+    //const broker_endpoint="10.88.0.21"
+    const broker_endpoint="192.168.2.221"
 
     const players = {};
 
@@ -50,7 +54,7 @@
         update: update
       }
     };
-    
+
     var graphics;
     var player_group;
     var cursors;
@@ -64,13 +68,13 @@
       });
       cursors = this.input.keyboard.createCursorKeys();
     }
-    
+
     function preload () {
       //this.load.setBaseURL('http://labs.phaser.io');
-    
+
       this.load.image('spacepod', 'images/spacepod.png');
     }
-    
+
     function update() {
       // iterate over the players and draw their last known location
       Object.values(players).forEach (player=>{
@@ -112,70 +116,121 @@
       // handle keyboard stuff
       if ((xmove != 0) || (ymove != 0)) {
         const keyboard_input = {
-          type: 2, 
+          type: 2,
           rawInputCommandBuffer: {
-            type: 1, 
-            UUID: player_uuid, 
-            dualStickRawInputCommandBuffer: { 
+            type: 1,
+            UUID: player_uuid,
+            dualStickRawInputCommandBuffer: {
               pbv2Move: {
                 x: xmove, y: ymove
-              }, 
+              },
               pbv2Shoot: {
                 x: 0, y: 0
-              } 
-            } 
+              }
+            }
           }
         };
         const keyboard_message = CommandBuffer.create(keyboard_input);
         const keyboard_buffer = CommandBuffer.encode(keyboard_message).finish();
-        client.publish({
-          destination: 'COMMAND.IN', 
-          binaryBody: keyboard_buffer, 
-          headers: { 
-            'content-type': 'application/octet-stream',
-            'reply-to': 'COMMAND.OUT.' + myuuid
-          }
-        });
+
+        // STOMP stuff
+        // client.publish({
+        //   destination: 'COMMAND.IN',
+        //   binaryBody: keyboard_buffer,
+        //   headers: {
+        //     'content-type': 'application/octet-stream',
+        //     'reply-to': 'COMMAND.OUT.' + myuuid
+        //   }
+        // });
       }
 
     };
 
-    // messaging stuff
-    var client;
+    // AMQP messaging stuff
+    var client = require("rhea");
+    var ws = client.websocket_connect(WebSocket);
+    var server = "ws://192.168.2.221:5672";
+    var connection = client.connect({"connection_details":ws(server, ["binary", "AMQPWSB10", "amqp"]), "reconnect":false});
+    var receiver = connection.open_receiver("GAME.EVENT.OUT");
+    var sender = connection.open_sender("COMMAND.IN");
 
+    // STOMP stuff
+    // var client;
+    //
     (async function() {
+    //
+    //   client = new StompJs.Client({
+    //     brokerURL: 'ws://' + broker_endpoint + ':61613',
+    //     connectHeaders: {
+    //       login: 'user',
+    //       passcode: 'password',
+    //     },
+    //     debug: function (str) {
+    //       //console.log(str);
+    //     },
+    //     reconnectDelay: 5000,
+    //     heartbeatIncoming: 4000,
+    //     heartbeatOutgoing: 4000,
+    //   });
+    //
+    //   client.onConnect = function (frame) {
+    //     // Do something, all subscribes must be done is this callback
+    //     // This is needed because this will be executed after a (re)connect
+    //   };
+    //
+    //   client.onStompError = function (frame) {
+    //     // Will be invoked in case of error encountered at Broker
+    //     // Bad login/passcode typically will cause an error
+    //     // Complaint brokers will set `message` header with a brief message. Body may contain details.
+    //     // Compliant brokers will terminate the connection after any error
+    //     console.log('Broker reported error: ' + frame.headers['message']);
+    //     console.log('Additional details: ' + frame.body);
+    //   };
+    //
+    //   client.activate();
 
-      client = new StompJs.Client({
-        brokerURL: 'ws://' + broker_endpoint + ':61613',
-        connectHeaders: {
-          login: 'user',
-          passcode: 'password',
-        },
-        debug: function (str) {
-          //console.log(str);
-        },
-        reconnectDelay: 5000,
-        heartbeatIncoming: 4000,
-        heartbeatOutgoing: 4000,
-      });
-  
-      client.onConnect = function (frame) {
-        // Do something, all subscribes must be done is this callback
-        // This is needed because this will be executed after a (re)connect
-      };
-  
-      client.onStompError = function (frame) {
-        // Will be invoked in case of error encountered at Broker
-        // Bad login/passcode typically will cause an error
-        // Complaint brokers will set `message` header with a brief message. Body may contain details.
-        // Compliant brokers will terminate the connection after any error
-        console.log('Broker reported error: ' + frame.headers['message']);
-        console.log('Additional details: ' + frame.body);
-      };
-  
-      client.activate();
+        var requests = 10;
+        var current = 1;
 
-      try {
+        function next_request() {
+            var msg = 'request-' + current;
+            sender.send({body:msg})
+            console.log('sent ' + msg);
+        }
+
+        client.on('connection_open', function (context) {
+            console.log("AMQP connection open to " + server)
+        });
+
+        client.on('receiver_open', function (context) {
+            console.log("receiver_open");
+        });
+
+        client.on('sender_open', function (context) {
+            console.log("sender_open");
+        });
+
+        // i.e. received a message
+        client.on('message', function (context) {
+            console.log('received ' + context.message.body);
+            if (current++ < requests) {
+                next_request();
+            } else {
+                context.connection.close();
+            }
+        });
+
+        // i.e. we have credit to do a send
+        client.on('sendable', function (context) {
+            console.log('sendable');
+            // next_request();
+        });
+
+        client.on('disconnected', function (context) {
+            console.log('disconnected');
+        });
+
+        try {
           const loadCommandBuffer = await protobuf.load("../proto/CommandBuffer.proto");
           CommandBuffer = loadCommandBuffer.lookupType("redhatgamedev.srt.CommandBuffer");
 
@@ -195,17 +250,24 @@
 
           // there can be only one -- join, that is
           const scb_join = {type: 1, securityCommandBuffer: {type: 1, UUID: myuuid}};
-          const scb_join_message = CommandBuffer.create(scb_join); 
+          const scb_join_message = CommandBuffer.create(scb_join);
           const scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
           // setting content-type header is not mandatory, however a good practice
-          client.publish({
-              destination: 'COMMAND.IN',
-              binaryBody: scb_join_buffer,
-              headers: { 
-                  'content-type': 'application/octet-stream',
-                  'reply-to': 'COMMAND.OUT.' + myuuid
-              },
-          });
+
+          // STOMP stuff
+          // client.publish({
+          //     destination: 'COMMAND.IN',
+          //     binaryBody: scb_join_buffer,
+          //     headers: {
+          //         'content-type': 'application/octet-stream',
+          //         'reply-to': 'COMMAND.OUT.' + myuuid
+          //     },
+          // });
+
+            // AMQP stuff
+            // TODO: This is likely wrong as we're dumping in the protobuf when we should be dumping in a message
+            // containing a protobuf as the data section
+            sender.send(scb_join_buffer);
 
           player_initialize = function (UUID) {
             players[UUID] = { body: null, stuff: {}};
@@ -267,8 +329,9 @@
           };
 
           // subscribe to the GAME.EVENT.OUT queue
-          var game_event_subscription = client.subscribe('GAME.EVENT.OUT', game_event_message_callback);
-          var my_command_subscription = client.subscribe('COMMAND.OUT.' + myuuid, command_message_callback);
+          // STOMP stuff
+          // var game_event_subscription = client.subscribe('GAME.EVENT.OUT', game_event_message_callback);
+          // var my_command_subscription = client.subscribe('COMMAND.OUT.' + myuuid, command_message_callback);
 
           } catch (e) {
               console.error('Error during client initialization');
@@ -277,7 +340,7 @@
           }
 
       }
-      
+
     ());
   </script>
 
