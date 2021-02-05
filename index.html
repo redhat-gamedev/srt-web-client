@@ -201,10 +201,10 @@
             console.log("sender_open");
         });
 
-        // i.e. received a message
-        client.on('message', function (context) {
-            console.log('received ' + context.message.body);
-        });
+        // // i.e. received a message
+        // client.on('message', function (context) {
+        //     console.log('received ' + context.message.body);
+        // });
 
         // i.e. we have credit to do a send
         client.on('sendable', function (context) {
@@ -257,7 +257,6 @@
             var body = amqp_message.data_section(scb_join_buffer);
             // sender.send({message_id:sent, body});
             sender.send({body});
-            sent++;
 
           player_initialize = function (UUID) {
             players[UUID] = { body: null, stuff: {}};
@@ -285,10 +284,15 @@
 
           // the function when game event messages are received
           game_event_message_callback = function (message) {
+              console.log("game_event_message_callback");
             // called when the client receives a STOMP message from the server
-            if (message.binaryBody) {
+            // if (message.binaryBody) {
+              if (message.body) {
+                  console.log("gemc has message.body");
               // we always receive a gameevent
-              const decoded_event_message = GameEventBuffer.decode(message.binaryBody);
+              // const decoded_event_message = GameEventBuffer.decode(message.binaryBody);
+                  const decoded_event_message = GameEventBuffer.decode(message.body);
+                  console.log("gemc after decoding message.body");
               //console.log(decoded_event_message);
 
               // check on what type of game event we received
@@ -300,16 +304,26 @@
                   process_security_game_event(decoded_event_message.securityGameEventBuffer);
                   break;
                 case 1:
+                    console.log("gemc got an entity game event");
                   // entity game event buffer is about a specific player
                   process_entity_game_event(decoded_event_message.entityGameEventBuffer);
                   break;
+                  default:
+                      console.log("gemc got a default");
               }
             } else {
-              console.log('for some reason we got a message with no binary boddy');
+              console.log('for some reason we got a message with no binary body');
             }
           };
 
-          command_message_callback = function(message) {
+          // AMQP stuff
+            // i.e. received a message
+            client.on('message', function (context) {
+                console.log('received ' + context.message.body);
+                game_event_message_callback(context.message)
+            });
+
+            command_message_callback = function(message) {
             console.log('got a command message');
             if (message.binaryBody) {
               // the command message is just our unique player UUID
