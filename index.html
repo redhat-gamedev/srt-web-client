@@ -310,7 +310,7 @@
                   // console.log("gemc message decoded is " + decoded);
                   // var binaryBody = message.body.data;
                   // const decoded_event_message = GameEventBuffer.decode(message.body);
-                  const decoded_event_message = GameEventBuffer.decode(new Uint8Array(message.body));
+                  const decoded_event_message = GameEventBuffer.decode(message.body);
                   // console.log("gemc after decoding message.body - dem is " + decoded_event_message);
               //console.log(decoded_event_message);)
 
