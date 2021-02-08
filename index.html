@@ -23,8 +23,7 @@
     const force_multiplier = 200;
 
     // the broker endpoint
-    //const broker_endpoint="10.88.0.21"
-    const broker_endpoint="192.168.2.221"
+    const broker_endpoint="ws://192.168.2.221:5672"
 
     const players = {};
 
@@ -149,8 +148,7 @@
     // AMQP messaging stuff
     var client = require("rhea");
     var ws = client.websocket_connect(WebSocket);
-    var server = "ws://192.168.2.221:5672";
-    var connection = client.connect({"connection_details":ws(server, ["binary", "AMQPWSB10", "amqp"]), "reconnect":false});
+    var connection = client.connect({"connection_details":ws(broker_endpoint, ["binary", "AMQPWSB10", "amqpws"]), "reconnect":false});
     var receiver = connection.open_receiver("GAME.EVENT.OUT");
     var sender = connection.open_sender("COMMAND.IN");
 
@@ -190,7 +188,7 @@
     //   client.activate();
 
         client.on('connection_open', function (context) {
-            console.log("AMQP connection open to " + server)
+            console.log("AMQP connection open to " + broker_endpoint)
         });
 
         client.on('receiver_open', function (context) {
@@ -288,21 +286,33 @@
             // called when the client receives a STOMP message from the server
             // if (message.binaryBody) {
               if (message.body) {
-                  console.log("gemc has message.body");
+                  // console.log("gemc has message.body");
               // we always receive a gameevent
               // const decoded_event_message = GameEventBuffer.decode(message.binaryBody);
                   console.log("gemc message is " + message);
-                  console.log("gemc message.body is " + message.body);
-                  console.log("gemc message.body.data is " + message.body.data);
-                  console.log("gemc message.body.data_section is " + message.body.data_section);
-                  console.log("gemc message.binary is " + message.binary);
+                  // console.log("gemc message.body is " + message.body);
+                  // console.log("gemc message.body.contentType is " + message.body.contentType);
+                  // console.log("gemc message.body.content is " + message.body.content);
+                  // // console.log("gemc message.body Uint8Array is " + Uint8Array(message.body));
+                  // var u8a = new Uint8Array(message.body);
+                  // console.log("gemc message.body Uint8Array is " + u8a);
+                  // console.log("gemc message body typecode " + message.body.typecode);
+                  // // console.log("qemc message.body.content.length is " + message.body.content.length);
+                  // console.log("qemc message.body.content is " + message.body.content);
+                  // console.log("qemc message.content is " + message.content);
+                  // console.log("gemc message.body.data is " + message.body.data);
+                  // console.log("gemc message.body.data_section is " + message.body.data_section);
+                  // console.log("gemc message.binary is " + message.binary);
+                  // console.log("qemc message.typecode is " + message.typecode);
+
+
                   // var decoded = client.decode(message);
                   // console.log("gemc message decoded is " + decoded);
-                  var binaryBody = message.body.data;
+                  // var binaryBody = message.body.data;
                   // const decoded_event_message = GameEventBuffer.decode(message.body);
-                  const decoded_event_message = GameEventBuffer.decode(message.body);
-                  console.log("gemc after decoding message.body - dem is " + decoded_event_message);
-              //console.log(decoded_event_message);
+                  const decoded_event_message = GameEventBuffer.decode(new Uint8Array(message.body));
+                  // console.log("gemc after decoding message.body - dem is " + decoded_event_message);
+              //console.log(decoded_event_message);)
 
               // check on what type of game event we received
               switch(decoded_event_message.type) {
