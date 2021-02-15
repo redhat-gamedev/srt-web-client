@@ -1,0 +1,23 @@
+{
+  "name": "srt-web-client",
+  "version": "0.0.1",
+  "description": "An MVP implementation of a web-based client for the Space Rings Thing game.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/redhat-gamedev/srt-web-client.git"
+  },
+  "keywords": [
+    "game",
+    "phaser"
+  ],
+  "author": "Jared Sprague",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/redhat-gamedev/srt-web-client/issues"
+  },
+  "homepage": "https://github.com/redhat-gamedev/srt-web-client#readme"
+}
