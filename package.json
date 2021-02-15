@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/redhat-gamedev/srt-web-client/issues"
   },
-  "homepage": "https://github.com/redhat-gamedev/srt-web-client#readme"
+  "homepage": "https://github.com/redhat-gamedev/srt-web-client#readme",
+  "dependencies": {
+    "phaser": "^3.52.0"
+  }
 }
