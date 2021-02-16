@@ -1,42 +1,48 @@
 {
-  "name": "srt-web-client",
-  "version": "0.0.1",
-  "description": "An MVP implementation of a web-based client for the Space Rings Thing game.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "webpack --config ./webpack.config.js --watch"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/redhat-gamedev/srt-web-client.git"
-  },
-  "keywords": [
-    "game",
-    "phaser"
-  ],
-  "author": "Jared Sprague",
-  "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://github.com/redhat-gamedev/srt-web-client/issues"
-  },
-  "homepage": "https://github.com/redhat-gamedev/srt-web-client#readme",
-  "dependencies": {
-    "lodash": "^4.17.20",
-    "phaser": "~3.24.1",
-    "protobufjs": "^6.10.2",
-    "rhea": "^1.0.24"
-  },
-  "devDependencies": {
-    "@types/html-webpack-plugin": "^3.2.4",
-    "@types/lodash": "^4.14.168",
-    "browser-sync": "^2.26.14",
-    "browser-sync-webpack-plugin": "^2.3.0",
-    "copy-webpack-plugin": "^6.4.1",
-    "html-webpack-plugin": "^5.1.0",
-    "ts-loader": "^8.0.17",
-    "typescript": "^4.1.5",
-    "webpack": "^5.22.0",
-    "webpack-cli": "^4.5.0"
-  }
+    "name": "srt-web-client",
+    "version": "0.0.1",
+    "description": "An MVP implementation of a web-based client for the Space Rings Thing game.",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/redhat-gamedev/srt-web-client.git"
+    },
+    "keywords": [
+        "game",
+        "phaser"
+    ],
+    "author": "Jared Sprague",
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://github.com/redhat-gamedev/srt-web-client/issues"
+    },
+    "homepage": "https://github.com/redhat-gamedev/srt-web-client#readme",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "webpack --config ./webpack.config.js --watch",
+        "eslint": "eslint . --ext .ts"
+    },
+    "dependencies": {
+        "lodash": "^4.17.20",
+        "phaser": "~3.24.1",
+        "protobufjs": "^6.10.2",
+        "rhea": "^1.0.24"
+    },
+    "devDependencies": {
+        "@types/html-webpack-plugin": "^3.2.4",
+        "@types/lodash": "^4.14.168",
+        "@typescript-eslint/eslint-plugin": "^4.15.1",
+        "@typescript-eslint/parser": "^4.15.1",
+        "browser-sync": "^2.26.14",
+        "browser-sync-webpack-plugin": "^2.3.0",
+        "copy-webpack-plugin": "^6.4.1",
+        "eslint": "^7.20.0",
+        "eslint-config-google": "^0.14.0",
+        "eslint-plugin-jsdoc": "^32.0.0",
+        "html-webpack-plugin": "^5.1.0",
+        "ts-loader": "^8.0.17",
+        "typescript": "^4.1.5",
+        "webpack": "^5.22.0",
+        "webpack-cli": "^4.5.0"
+    }
 }
