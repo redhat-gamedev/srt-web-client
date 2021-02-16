@@ -23,7 +23,7 @@
     const force_multiplier = 200;
 
     // the broker endpoint
-    const broker_endpoint="ws://192.168.2.221:5672"
+    const broker_endpoint="ws://10.88.0.5:5672"
 
     const players = {};
 
@@ -146,53 +146,20 @@
     };
 
     // AMQP messaging stuff
-    var client = require("rhea");
-    var ws = client.websocket_connect(WebSocket);
-    var connection = client.connect({"connection_details":ws(broker_endpoint, ["binary", "AMQPWSB10", "amqpws"]), "reconnect":false});
-    var receiver = connection.open_receiver("GAME.EVENT.OUT");
-    var sender = connection.open_sender("COMMAND.IN");
+    const client = require("rhea");
+    const ws = client.websocket_connect(WebSocket);
+    const connection = client.connect({"connection_details":ws(broker_endpoint), "reconnect":false});
+    const main_game_event_receiver = connection.open_receiver("GAME.EVENT.OUT");
+    const personal_game_event_receiver = connection.open_receiver("COMMAND.OUT." + myuuid)
+    const sender = connection.open_sender("COMMAND.IN");
 
-    // STOMP stuff
-    // var client;
-    //
     (async function() {
-    //
-    //   client = new StompJs.Client({
-    //     brokerURL: 'ws://' + broker_endpoint + ':61613',
-    //     connectHeaders: {
-    //       login: 'user',
-    //       passcode: 'password',
-    //     },
-    //     debug: function (str) {
-    //       //console.log(str);
-    //     },
-    //     reconnectDelay: 5000,
-    //     heartbeatIncoming: 4000,
-    //     heartbeatOutgoing: 4000,
-    //   });
-    //
-    //   client.onConnect = function (frame) {
-    //     // Do something, all subscribes must be done is this callback
-    //     // This is needed because this will be executed after a (re)connect
-    //   };
-    //
-    //   client.onStompError = function (frame) {
-    //     // Will be invoked in case of error encountered at Broker
-    //     // Bad login/passcode typically will cause an error
-    //     // Complaint brokers will set `message` header with a brief message. Body may contain details.
-    //     // Compliant brokers will terminate the connection after any error
-    //     console.log('Broker reported error: ' + frame.headers['message']);
-    //     console.log('Additional details: ' + frame.body);
-    //   };
-    //
-    //   client.activate();
-
         client.on('connection_open', function (context) {
             console.log("AMQP connection open to " + broker_endpoint)
         });
 
         client.on('receiver_open', function (context) {
-            console.log("receiver_open");
+            console.log("receiver_open: " + context.receiver.options.source.address);
         });
 
         client.on('sender_open', function (context) {
@@ -229,13 +196,10 @@
           const loadRawInputCommandBuffer = await protobuf.load("../proto/RawInputCommandBuffer.proto");
           RawInputCommandBuffer = loadRawInputCommandBuffer.lookupType("redhatgamedev.srt.RawInputCommandBuffer");
 
-          //console.log('loaded', {CommandBuffer, EntityGameEventBuffer});
-
           // there can be only one -- join, that is
           const scb_join = {type: 1, securityCommandBuffer: {type: 1, UUID: myuuid}};
           const scb_join_message = CommandBuffer.create(scb_join);
           const scb_join_buffer = CommandBuffer.encode(scb_join_message).finish();
-          // setting content-type header is not mandatory, however a good practice
 
           // STOMP stuff
           // client.publish({
@@ -247,14 +211,10 @@
           //     },
           // });
 
-            // AMQP stuff
-            // TODO: This is likely wrong as we're dumping in the protobuf when we should be dumping in a message
-            // containing a protobuf as the data section
-
-            var amqp_message = client.message;
-            var body = amqp_message.data_section(scb_join_buffer);
-            // sender.send({message_id:sent, body});
-            sender.send({body});
+          // AMQP stuff
+          var amqp_message = client.message;
+          var body = amqp_message.data_section(scb_join_buffer);
+          sender.send({body});
 
           player_initialize = function (UUID) {
             players[UUID] = { body: null, stuff: {}};
@@ -289,7 +249,7 @@
                   // console.log("gemc has message.body");
               // we always receive a gameevent
               // const decoded_event_message = GameEventBuffer.decode(message.binaryBody);
-                  console.log("gemc message is " + message);
+                  //console.log("gemc message is " + message);
                   // console.log("gemc message.body is " + message.body);
                   // console.log("gemc message.body.contentType is " + message.body.contentType);
                   // console.log("gemc message.body.content is " + message.body.content);
@@ -317,18 +277,18 @@
               // check on what type of game event we received
               switch(decoded_event_message.type) {
                 case 2:
-                  console.log('got a security event');
+                  //console.log('got a security event');
                   //console.log(decoded_event_message);
                   // security message
                   process_security_game_event(decoded_event_message.securityGameEventBuffer);
                   break;
                 case 1:
-                    console.log("gemc got an entity game event");
+                  // console.log("gemc got an entity game event");
                   // entity game event buffer is about a specific player
                   process_entity_game_event(decoded_event_message.entityGameEventBuffer);
                   break;
-                  default:
-                      console.log("gemc got a default");
+                default:
+                  console.log("gemc got a default");
               }
             } else {
               console.log('for some reason we got a message with no binary body');
@@ -336,13 +296,13 @@
           };
 
           // AMQP stuff
-            // i.e. received a message
-            client.on('message', function (context) {
-                console.log('received ' + context.message.body);
-                game_event_message_callback(context.message)
-            });
+          // i.e. received a message
+          main_game_event_receiver.on('message', function (context) {
+              //console.log('received ' + context.message.body);
+              game_event_message_callback(context.message);
+          });
 
-            command_message_callback = function(message) {
+          command_message_callback = function(message) {
             console.log('got a command message');
             if (message.binaryBody) {
               // the command message is just our unique player UUID
@@ -351,10 +311,9 @@
             }
           };
 
-          // subscribe to the GAME.EVENT.OUT queue
-          // STOMP stuff
-          // var game_event_subscription = client.subscribe('GAME.EVENT.OUT', game_event_message_callback);
-          // var my_command_subscription = client.subscribe('COMMAND.OUT.' + myuuid, command_message_callback);
+          personal_game_event_receiver.on('message', function (context) {
+            command_message_callback(context.message);
+          });
 
           } catch (e) {
               console.error('Error during client initialization');
