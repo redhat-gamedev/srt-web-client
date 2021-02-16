@@ -1,22 +1,29 @@
 import 'phaser';
-import PreloadScene from './scenes/preloadScene';
-import MenuScene from './scenes/menuScene';
-import MainScene from './scenes/mainScene';
+import PreloadScene from './scenes/PreloadScene';
+import MenuScene from './scenes/MenuScene';
+import MainScene from './scenes/MainScene';
 
 const config = {
-    type           : Phaser.WEBGL,
-    backgroundColor: '#ffffff',
-    scale          : {
-        parent: 'phaser-game',
-        mode  : Phaser.Scale.RESIZE,
-    },
-    physics: {
-        default: 'arcade',
-        arcade : {
-            gravity: { y: 200 },
+    // Network config
+    BROKER_ENDPOINT : '10.88.0.21',
+    FORCE_MULTIPLIER: 200,
+
+    // Phaser config object to pass when creating the game
+    PHASER_GAME_CONFIG: {
+        type           : Phaser.WEBGL,
+        backgroundColor: '#ffffff',
+        scale          : {
+            parent: 'phaser-game',
+            mode  : Phaser.Scale.RESIZE,
         },
+        physics: {
+            default: 'arcade',
+            arcade : {
+                debug: true,
+            },
+        },
+        scene: [PreloadScene, MenuScene, MainScene],
     },
-    scene: [PreloadScene, MenuScene, MainScene],
 };
 
 export default config;
