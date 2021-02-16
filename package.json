@@ -2,7 +2,7 @@
     "name": "srt-web-client",
     "version": "0.0.1",
     "description": "An MVP implementation of a web-based client for the Space Rings Thing game.",
-    "main": "index.js",
+    "main": "src/index.js",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/redhat-gamedev/srt-web-client.git"
