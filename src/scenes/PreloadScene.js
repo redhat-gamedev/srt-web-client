@@ -3,6 +3,10 @@
 global Phaser
 */
 
+import AMQPGameClient from '../network/AMQPGameClient.js';
+import config from '../config.js';
+import GameModel from '../model/GameModel.js';
+
 /**
  * PreloadScene loads all the static assets and initializes the game
  */
@@ -13,12 +17,15 @@ export default class PreloadScene extends Phaser.Scene {
      */
     constructor() {
         super({ key: 'PreloadScene' });
+
+        // Instantiate game model
+        this.model = new GameModel();
     }
 
     /**
      * preload the game assets i.e. images, audio, animations
      */
-    preload() {
+    async preload() {
         console.log('[PreloadScene] loading assets...');
 
         this.load.setBaseURL('assets');
@@ -32,12 +39,16 @@ export default class PreloadScene extends Phaser.Scene {
             './audio/music_srt_gameplay_singularity.mp3',
             './audio/music_srt_gameplay_singularity.ogg',
         ]);
+
+        // Create the AMQP client and initialize, this instance will be passed between scenes
+        this.client = new AMQPGameClient(config.BROKER_ENDPOINT, this.model);
+        await this.client.init();
     }
 
     /**
      * Pre-create any static objects that will be used in the game e.g. animations
      */
     create() {
-        this.scene.start('MenuScene');
+        this.scene.start('MenuScene', { client: this.client, model: this.model });
     }
 }

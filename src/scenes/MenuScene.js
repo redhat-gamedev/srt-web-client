@@ -17,11 +17,16 @@ export default class MenuScene extends Phaser.Scene {
 
     /**
      * Create the games Main Menu
+     *
+     * @param {object} data generic data to pass between scenes
      */
-    create() {
+    create(data) {
         console.log('[MenuScene] create');
 
+        this.client = data.client;
+        this.model = data.model;
+
         // TODO: create a main menu "Play" button
-        this.scene.start('MainScene');
+        this.scene.start('MainScene', { client: this.client, model: this.model });
     }
 }
