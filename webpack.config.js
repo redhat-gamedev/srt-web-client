@@ -29,6 +29,7 @@ module.exports = {
         new CopyWebpackPlugin({
             patterns: [
                 { from: 'src/assets', to: 'assets' },
+                { from: 'src/network', to: 'network' },
             ],
         }),
         new BrowserSyncPlugin({
