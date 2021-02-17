@@ -1,3 +1,8 @@
+// ESLint global declarations: https://eslint.org/docs/rules/no-undef
+/*
+global Phaser
+*/
+
 /**
  * MenuScene is the scene of the main menu of the game
  */
@@ -13,7 +18,7 @@ export default class MenuScene extends Phaser.Scene {
     /**
      * Create the games Main Menu
      */
-    create():void {
+    create() {
         console.log('[MenuScene] create');
 
         // TODO: create a main menu "Play" button

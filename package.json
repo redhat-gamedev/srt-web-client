@@ -18,39 +18,21 @@
     },
     "homepage": "https://github.com/redhat-gamedev/srt-web-client#readme",
     "scripts": {
+        "start": "npm run dev",
         "test": "npm run eslint",
-        "dev": "webpack --config ./webpack.config.js --watch",
-        "eslint": "eslint . --ext .ts"
+        "dev": "browser-sync start --server --serveStatic ./src --files './src/**/*.*' --directory --no-notify",
+        "eslint": "eslint ./src --ext .js"
     },
     "dependencies": {
-        "lodash": "^4.17.20",
         "phaser": "~3.52.0",
         "protobufjs": "^6.10.2",
         "rhea": "^1.0.24",
         "uuid": "^8.3.2"
     },
     "devDependencies": {
-        "@babel/core": "^7.12.16",
-        "@babel/preset-env": "^7.12.16",
-        "@types/html-webpack-plugin": "^3.2.4",
-        "@types/lodash": "^4.14.168",
-        "@types/long": "^4.0.1",
-        "@types/node": "^14.14.28",
-        "@types/protobufjs": "^6.0.0",
-        "@types/uuid": "^8.3.0",
-        "@typescript-eslint/eslint-plugin": "^4.15.1",
-        "@typescript-eslint/parser": "^4.15.1",
-        "babel-loader": "^8.2.2",
         "browser-sync": "^2.26.14",
-        "browser-sync-webpack-plugin": "^2.3.0",
-        "copy-webpack-plugin": "^6.4.1",
         "eslint": "^7.20.0",
         "eslint-config-google": "^0.14.0",
-        "eslint-plugin-jsdoc": "^32.0.0",
-        "html-webpack-plugin": "^5.1.0",
-        "ts-loader": "^8.0.17",
-        "typescript": "^4.1.5",
-        "webpack": "^5.22.0",
-        "webpack-cli": "^4.5.0"
+        "eslint-plugin-jsdoc": "^32.0.0"
     }
 }
