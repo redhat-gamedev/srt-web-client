@@ -26,7 +26,7 @@ export default class Game extends Phaser.Game {
             physics: {
                 default: 'arcade',
                 arcade : {
-                    debug: true,
+                    debug: false, // TODO: figure out how to get this from config.js
                 },
             },
             scene: [PreloadScene, MenuScene, MainScene],

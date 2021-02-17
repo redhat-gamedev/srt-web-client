@@ -116,7 +116,7 @@ export default class AMQPGameClient {
             this.sender.send({ body });
 
             const playerInitialize = (UUID) => {
-                this.model.players[UUID] = { body: null, stuff: {} };
+                this.model.players[UUID] = { uuid: UUID, body: null, stuff: {} };
             };
 
             const processSecurityGameEvent = function(buffer) {

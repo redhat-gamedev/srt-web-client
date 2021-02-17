@@ -17,6 +17,7 @@ export default class MainScene extends Phaser.Scene {
 
         this.playerGroup = null;
         this.cursors = null;
+        this.playerPhysicsGroups = {};
     }
 
     /**
@@ -60,14 +61,15 @@ export default class MainScene extends Phaser.Scene {
             if (player.body != null) {
                 // if the player has no phaser group object, create one
                 if (player.stuff.phaserGroup == null) {
-                    const xpos = player.body.position.x + (config.RESOLUTION_WIDTH / 2);
-                    const ypos = player.body.position.y + (config.RESOLUTION_HEIGHT / 2);
-                    player.stuff.phaserGroup = this.playerGroup.create(xpos, ypos, 'spacepod');
+                    const xpos = player.body.position.x + this.cameras.main.centerX;
+                    const ypos = player.body.position.y + this.cameras.main.centerY;
+                    const group = this.playerGroup.create(xpos, ypos, 'ship_red');
+                    this.playerPhysicsGroups[player.uuid] = group;
                 }
                 else {
                     // otherwise just update the group's position
-                    player.stuff.phaserGroup.x = player.body.position.x + (this.resolution_width / 2);
-                    player.stuff.phaserGroup.y = player.body.position.y + (this.resolution_height / 2);
+                    this.playerPhysicsGroups[player.uuid].setX(player.body.position.x + this.cameras.main.centerX);
+                    this.playerPhysicsGroups[player.uuid].setY(player.body.position.y + this.cameras.main.centerY);
                 }
             }
 
