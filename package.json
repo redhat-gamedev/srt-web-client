@@ -30,11 +30,17 @@
         "uuid": "^8.3.2"
     },
     "devDependencies": {
+        "@babel/core": "^7.12.16",
+        "@babel/preset-env": "^7.12.16",
         "@types/html-webpack-plugin": "^3.2.4",
         "@types/lodash": "^4.14.168",
+        "@types/long": "^4.0.1",
+        "@types/node": "^14.14.28",
+        "@types/protobufjs": "^6.0.0",
         "@types/uuid": "^8.3.0",
         "@typescript-eslint/eslint-plugin": "^4.15.1",
         "@typescript-eslint/parser": "^4.15.1",
+        "babel-loader": "^8.2.2",
         "browser-sync": "^2.26.14",
         "browser-sync-webpack-plugin": "^2.3.0",
         "copy-webpack-plugin": "^6.4.1",

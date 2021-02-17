@@ -5,8 +5,9 @@ import MainScene from './scenes/MainScene';
 
 const config = {
     // Network config
-    BROKER_ENDPOINT : '10.88.0.21',
+    BROKER_ENDPOINT : 'ws://10.88.0.2:5672',
     FORCE_MULTIPLIER: 200,
+
 
     // Phaser config object to pass when creating the game
     PHASER_GAME_CONFIG: {
