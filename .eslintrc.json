@@ -1,0 +1,104 @@
+{
+    "root": true,
+    "parserOptions": {
+        "ecmaVersion": 8,
+        "sourceType": "module"
+    },
+    "env": {
+        "browser": true,
+        "es6": true,
+        "node": true
+    },
+    "plugins": [
+        "jsdoc"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "google",
+        "plugin:jsdoc/recommended"
+    ],
+    "rules": {
+        "space-infix-ops": "error",
+        "space-in-parens": "error",
+        "no-multi-spaces": "off",
+        "no-console": "off",
+        "padded-blocks": "off",
+        "camelcase": [
+            "error",
+            {
+                "ignoreImports": true,
+                "ignoreGlobals": true
+            }
+        ],
+        "curly": [
+            "error",
+            "multi-line",
+            "consistent"
+        ],
+        "object-curly-spacing": [
+            "error",
+            "always"
+        ],
+        "key-spacing": [
+            "error",
+            {
+                "align": {
+                    "beforeColon": false,
+                    "afterColon": true,
+                    "on": "colon"
+                }
+            }
+        ],
+        "new-cap": [
+            "error",
+            {
+                "capIsNewExceptions": []
+            }
+        ],
+        "spaced-comment": [
+            "error",
+            "always",
+            {
+                "line": {
+                    "exceptions": [
+                        "/"
+                    ]
+                },
+                "block": {
+                    "exceptions": [
+                        "*"
+                    ],
+                    "balanced": true
+                }
+            }
+        ],
+        "quotes": [
+            "error",
+            "single",
+            {
+                "avoidEscape": true,
+                "allowTemplateLiterals": true
+            }
+        ],
+        "brace-style": [
+            "error",
+            "stroustrup"
+        ],
+        "indent": [
+            "error",
+            4,
+            {
+                "SwitchCase": 1
+            }
+        ],
+        "max-len": [
+            "error",
+            {
+                "code": 120,
+                "ignoreUrls": true,
+                "ignoreStrings": true,
+                "ignoreTrailingComments": true
+            }
+        ]
+    }
+}
