@@ -17,6 +17,7 @@ export default class MainScene extends Phaser.Scene {
 
         this.playerGroup = null;
         this.cursors = null;
+
         this.playerPhysicsGroups = {};
     }
 

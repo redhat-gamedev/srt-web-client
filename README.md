@@ -7,7 +7,14 @@ A scaleable multiplayer game example
     
     npm install
     
+<<<<<<< HEAD
 ### Build code and start a local web server
 Watches files for changes and will auto rebuild and refresh browser when files change
 
     npm start dev
+=======
+### Run
+Watches files for changes and will auto refresh browser when files change
+
+    npm start
+>>>>>>> master
