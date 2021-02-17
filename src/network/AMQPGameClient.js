@@ -206,8 +206,8 @@ export default class AMQPGameClient {
                 console.log('got a command message');
                 if (message.binaryBody) {
                     // the command message is just our unique player UUID
-                    this.playerUuid = new TextDecoder('utf-8').decode(message.binaryBody);
-                    console.log('unique player uuid: ' + this.playerUuid);
+                    this.model.playerUuid = new TextDecoder('utf-8').decode(message.binaryBody);
+                    console.log('unique player uuid: ' + this.model.playerUuid);
                 }
             };
 
@@ -221,5 +221,43 @@ export default class AMQPGameClient {
             throw e;
             /* handle error */
         }
+    }
+
+    /**
+     * Send a move command to the server
+     *
+     * @param {number} x position
+     * @param {number} y position
+     */
+    sendMove(x, y) {
+        const keyboardInput = {
+            type                 : 2,
+            rawInputCommandBuffer: {
+                type                          : 1,
+                UUID                          : this.uuid,
+                dualStickRawInputCommandBuffer: {
+                    pbv2Move: {
+                        x: x, y: y,
+                    },
+                    pbv2Shoot: {
+                        x: 0, y: 0,
+                    },
+                },
+            },
+        };
+
+        console.log('sending input:', keyboardInput);
+
+        const keyboardMessage = this.CommandBuffer.create(keyboardInput);
+        const keyboardBuffer = this.CommandBuffer.encode(keyboardMessage).finish();
+
+        this.sender.send({
+            destination: 'COMMAND.IN',
+            binaryBody : keyboardBuffer,
+            headers    : {
+                'content-type': 'application/octet-stream',
+                'reply-to'    : 'COMMAND.OUT.' + this.uuid,
+            },
+        });
     }
 }

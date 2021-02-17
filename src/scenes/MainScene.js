@@ -64,7 +64,7 @@ export default class MainScene extends Phaser.Scene {
                 if (player.stuff.phaserGroup == null) {
                     const xpos = player.body.position.x + this.cameras.main.centerX;
                     const ypos = player.body.position.y + this.cameras.main.centerY;
-                    const group = this.playerGroup.create(xpos, ypos, 'ship_red');
+                    const group = this.playerGroup.create(xpos, ypos, 'ship');
                     this.playerPhysicsGroups[player.uuid] = group;
                 }
                 else {
@@ -91,38 +91,12 @@ export default class MainScene extends Phaser.Scene {
             ymove = 1 * config.FORCE_MULTIPLIER;
         }
         else if (this.cursors.down.isDown) {
-            ymove = 1 * config.FORCE_MULTIPLIER;
+            ymove = -1 * config.FORCE_MULTIPLIER;
         }
 
         // handle keyboard stuff
         if ((xmove != 0) || (ymove != 0)) {
-            // const keyboard_input = {
-            //     type                 : 2,
-            //     rawInputCommandBuffer: {
-            //         type                          : 1,
-            //         UUID                          : this.model.playerUuid,
-            //         dualStickRawInputCommandBuffer: {
-            //             pbv2Move: {
-            //                 x: xmove, y: ymove,
-            //             },
-            //             pbv2Shoot: {
-            //                 x: 0, y: 0,
-            //             },
-            //         },
-            //     },
-            // };
-            // const keyboard_message = this.CommandBuffer.create(keyboard_input);
-            // const keyboard_buffer = this.CommandBuffer.encode(keyboard_message).finish();
-
-            // STOMP stuff
-            // client.publish({
-            //   destination: 'COMMAND.IN',
-            //   binaryBody: keyboard_buffer,
-            //   headers: {
-            //     'content-type': 'application/octet-stream',
-            //     'reply-to': 'COMMAND.OUT.' + myuuid
-            //   }
-            // });
+            this.client.sendMove(xmove, ymove);
         }
     }
 }
