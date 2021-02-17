@@ -22,8 +22,14 @@
         "space-in-parens": "error",
         "no-multi-spaces": "off",
         "no-console": "off",
-        "camelcase": "off",
         "padded-blocks": "off",
+        "camelcase": [
+            "error",
+            {
+                "ignoreImports": true,
+                "ignoreGlobals": true
+            }
+        ],
         "curly": [
             "error",
             "multi-line",

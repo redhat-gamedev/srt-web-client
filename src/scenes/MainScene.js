@@ -18,12 +18,7 @@ export default class MainScene extends Phaser.Scene {
         // Initialize properties
         this.players = {};
         this.myuuid = uuidv4();
-        this.player_uuid = '';
-        this.force_multiplier = config.FORCE_MULTIPLIER;
-        this.broker_endpoint = config.BROKER_ENDPOINT;
-
-        this.resolution_width = 800;
-        this.resolution_height = 600;
+        this.playerUuid = '';
 
         // Protobuff stuff
         this.CommandBuffer = null;
@@ -32,7 +27,7 @@ export default class MainScene extends Phaser.Scene {
         this.EntityGameEventBuffer = null;
         this.RawInputCommandBuffer = null;
 
-        this.player_group = null;
+        this.playerGroup = null;
         this.cursors = null;
     }
 
@@ -70,11 +65,11 @@ export default class MainScene extends Phaser.Scene {
         this.client = require('rhea');
         this.ws = this.client.websocket_connect(WebSocket);
         this.connection = this.client.connect({
-            'connection_details': this.ws(this.broker_endpoint),
+            'connection_details': this.ws(config.BROKER_ENDPOINT),
             'reconnect'         : false,
         });
-        this.main_game_event_receiver = this.connection.open_receiver('GAME.EVENT.OUT');
-        this.personal_game_event_receiver = this.connection.open_receiver('COMMAND.OUT.' + this.myuuid);
+        this.mainGameEventReceiver = this.connection.open_receiver('GAME.EVENT.OUT');
+        this.personalGameEventReceiver = this.connection.open_receiver('COMMAND.OUT.' + this.myuuid);
         this.sender = this.connection.open_sender('COMMAND.IN');
 
         // const brokerEndpoint = this.broker_endpoint;
@@ -83,7 +78,7 @@ export default class MainScene extends Phaser.Scene {
         // const GameEventBuffer = this.GameEventBuffer;
 
         this.client.on('connection_open', () => {
-            console.log('AMQP connection open to', this.broker_endpoint);
+            console.log('AMQP connection open to', config.BROKER_ENDPOINT);
         });
 
         this.client.on('receiver_open', (context) => {
@@ -110,14 +105,14 @@ export default class MainScene extends Phaser.Scene {
 
         try {
             // there can be only one -- join, that is
-            const scb_join = { type: 1, securityCommandBuffer: { type: 1, UUID: this.myuuid } };
-            const scb_join_message = this.CommandBuffer.create(scb_join);
-            const scb_join_buffer = this.CommandBuffer.encode(scb_join_message).finish();
+            const sbcJoin = { type: 1, securityCommandBuffer: { type: 1, UUID: this.myuuid } };
+            const scbJoinMessage = this.CommandBuffer.create(sbcJoin);
+            const scbJoinBuffer = this.CommandBuffer.encode(scbJoinMessage).finish();
 
             // STOMP stuff
             // client.publish({
             //     destination: 'COMMAND.IN',
-            //     binaryBody: scb_join_buffer,
+            //     binaryBody: scbJoinBuffer,
             //     headers: {
             //         'content-type': 'application/octet-stream',
             //         'reply-to': 'COMMAND.OUT.' + myuuid
@@ -125,43 +120,43 @@ export default class MainScene extends Phaser.Scene {
             // });
 
             // AMQP stuff
-            const amqp_message = this.client.message;
-            const body = amqp_message.data_section(scb_join_buffer);
+            const amqpMessage = this.client.message;
+            const body = amqpMessage.data_section(scbJoinBuffer);
             this.sender.send({ body });
 
-            const player_initialize = (UUID) => {
+            const playerInitialize = (UUID) => {
                 this.players[UUID] = { body: null, stuff: {} };
             };
 
-            const process_security_game_event = function(buffer) {
+            const processSecurityGameEvent = function(buffer) {
                 switch (buffer.type) {
                     case 1:
                         console.log('a player joined: ' + buffer.joinSecurityGameEventBuffer.UUID);
                         // a security game event with a type of 1 is a player join
                         // create an entity in the player array with the incoming uuid
-                        player_initialize(buffer.joinSecurityGameEventBuffer.UUID);
+                        playerInitialize(buffer.joinSecurityGameEventBuffer.UUID);
                         break;
                 }
             };
 
-            const process_entity_game_event = (buffer) => {
+            const processEntityGameEvent = (buffer) => {
                 if (this.players[buffer.UUID] == null) {
                     console.log('found a player we don\'t know about');
-                    player_initialize(buffer.UUID);
+                    playerInitialize(buffer.UUID);
                 }
                 // just store the pbbody details for the player
                 this.players[buffer.UUID].body = buffer.body;
             };
 
             // the function when game event messages are received
-            const game_event_message_callback = (message) => {
-                console.log('game_event_message_callback');
+            const gameEventMessageCallback = (message) => {
+                console.log('gameEventMessageCallback');
                 // called when the client receives a STOMP message from the server
                 // if (message.binaryBody) {
                 if (message.body) {
                     // console.log("gemc has message.body");
                     // we always receive a gameevent
-                    // const decoded_event_message = GameEventBuffer.decode(message.binaryBody);
+                    // const decodedEventMessage = GameEventBuffer.decode(message.binaryBody);
                     // console.log("gemc message is " + message);
                     // console.log("gemc message.body is " + message.body);
                     // console.log("gemc message.body.contentType is " + message.body.contentType);
@@ -182,23 +177,23 @@ export default class MainScene extends Phaser.Scene {
                     // var decoded = client.decode(message);
                     // console.log("gemc message decoded is " + decoded);
                     // var binaryBody = message.body.data;
-                    // const decoded_event_message = GameEventBuffer.decode(message.body);
-                    const decoded_event_message = this.GameEventBuffer.decode(message.body);
-                    // console.log("gemc after decoding message.body - dem is " + decoded_event_message);
-                    // console.log(decoded_event_message);)
+                    // const decodedEventMessage = GameEventBuffer.decode(message.body);
+                    const decodedEventMessage = this.GameEventBuffer.decode(message.body);
+                    // console.log("gemc after decoding message.body - dem is " + decodedEventMessage);
+                    // console.log(decodedEventMessage);)
 
                     // check on what type of game event we received
-                    switch (decoded_event_message.type) {
+                    switch (decodedEventMessage.type) {
                         case 2:
                             // console.log('got a security event');
-                            // console.log(decoded_event_message);
+                            // console.log(decodedEventMessage);
                             // security message
-                            process_security_game_event(decoded_event_message.securityGameEventBuffer);
+                            processSecurityGameEvent(decodedEventMessage.securityGameEventBuffer);
                             break;
                         case 1:
                             // console.log("gemc got an entity game event");
                             // entity game event buffer is about a specific player
-                            process_entity_game_event(decoded_event_message.entityGameEventBuffer);
+                            processEntityGameEvent(decodedEventMessage.entityGameEventBuffer);
                             break;
                         default:
                             console.log('gemc got a default');
@@ -211,22 +206,22 @@ export default class MainScene extends Phaser.Scene {
 
             // AMQP stuff
             // i.e. received a message
-            this.main_game_event_receiver.on('message', (context) => {
+            this.mainGameEventReceiver.on('message', (context) => {
                 // console.log('received ' + context.message.body);
-                game_event_message_callback(context.message);
+                gameEventMessageCallback(context.message);
             });
 
-            const command_message_callback = (message) => {
+            const commandMessageCallback = (message) => {
                 console.log('got a command message');
                 if (message.binaryBody) {
                     // the command message is just our unique player UUID
-                    this.player_uuid = new TextDecoder('utf-8').decode(message.binaryBody);
-                    console.log('unique player uuid: ' + this.player_uuid);
+                    this.playerUuid = new TextDecoder('utf-8').decode(message.binaryBody);
+                    console.log('unique player uuid: ' + this.playerUuid);
                 }
             };
 
-            this.personal_game_event_receiver.on('message', function(context) {
-                command_message_callback(context.message);
+            this.personalGameEventReceiver.on('message', function(context) {
+                commandMessageCallback(context.message);
             });
 
         }
@@ -264,7 +259,7 @@ export default class MainScene extends Phaser.Scene {
         const music = this.sound.add('gameplay_track_1');
         music.play();
 
-        this.player_group = this.physics.add.group({
+        this.playerGroup = this.physics.add.group({
             collideWorldBounds: true,
         });
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -280,15 +275,15 @@ export default class MainScene extends Phaser.Scene {
             // don't do anything if we don't have a body object for the player yet
             if (player.body != null) {
                 // if the player has no phaser group object, create one
-                if (player.stuff.phaser_group == null) {
-                    const xpos = player.body.position.x + (this.resolution_width / 2);
-                    const ypos = player.body.position.y + (this.resolution_height / 2);
-                    player.stuff.phaser_group = this.player_group.create(xpos, ypos, 'spacepod');
+                if (player.stuff.phaserGroup == null) {
+                    const xpos = player.body.position.x + (config.RESOLUTION_WIDTH / 2);
+                    const ypos = player.body.position.y + (config.RESOLUTION_HEIGHT / 2);
+                    player.stuff.phaserGroup = this.playerGroup.create(xpos, ypos, 'spacepod');
                 }
                 else {
                     // otherwise just update the group's position
-                    player.stuff.phaser_group.x = player.body.position.x + (this.resolution_width / 2);
-                    player.stuff.phaser_group.y = player.body.position.y + (this.resolution_height / 2);
+                    player.stuff.phaserGroup.x = player.body.position.x + (this.resolution_width / 2);
+                    player.stuff.phaserGroup.y = player.body.position.y + (this.resolution_height / 2);
                 }
             }
 
@@ -299,17 +294,17 @@ export default class MainScene extends Phaser.Scene {
 
         // grab keyboard input to move our player
         if (this.cursors.left.isDown) {
-            xmove = -1 * this.force_multiplier;
+            xmove = -1 * config.FORCE_MULTIPLIER;
         }
         else if (this.cursors.right.isDown) {
-            xmove = 1 * this.force_multiplier;
+            xmove = 1 * config.FORCE_MULTIPLIER;
         }
 
         if (this.cursors.up.isDown) {
-            ymove = 1 * this.force_multiplier;
+            ymove = 1 * config.FORCE_MULTIPLIER;
         }
         else if (this.cursors.down.isDown) {
-            ymove = 1 * this.force_multiplier;
+            ymove = 1 * config.FORCE_MULTIPLIER;
         }
 
         // handle keyboard stuff
