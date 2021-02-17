@@ -63,11 +63,6 @@ export default class AMQPGameClient {
         this.personalGameEventReceiver = this.connection.open_receiver('COMMAND.OUT.' + this.uuid);
         this.sender = this.connection.open_sender('COMMAND.IN');
 
-        // const brokerEndpoint = this.brokerEndpoint;
-        // const players = this.model.players;
-        // const player_uuid = this.player_uuid;
-        // const GameEventBuffer = this.GameEventBuffer;
-
         this.rhea.on('connection_open', () => {
             console.log('AMQP connection open to', this.brokerEndpoint);
         });
@@ -79,11 +74,6 @@ export default class AMQPGameClient {
         this.rhea.on('sender_open', () => {
             console.log('sender_open');
         });
-
-        // // i.e. received a message
-        // client.on('message', function (context) {
-        //     console.log('received ' + context.message.body);
-        // });
 
         // i.e. we have credit to do a send
         this.rhea.on('sendable', () => {
@@ -99,16 +89,6 @@ export default class AMQPGameClient {
             const sbcJoin = { type: 1, securityCommandBuffer: { type: 1, UUID: this.uuid } };
             const scbJoinMessage = this.CommandBuffer.create(sbcJoin);
             const scbJoinBuffer = this.CommandBuffer.encode(scbJoinMessage).finish();
-
-            // STOMP stuff
-            // client.publish({
-            //     destination: 'COMMAND.IN',
-            //     binaryBody: scbJoinBuffer,
-            //     headers: {
-            //         'content-type': 'application/octet-stream',
-            //         'reply-to': 'COMMAND.OUT.' + myuuid
-            //     },
-            // });
 
             // AMQP stuff
             const amqpMessage = this.rhea.message;
@@ -142,47 +122,18 @@ export default class AMQPGameClient {
             // the function when game event messages are received
             const gameEventMessageCallback = (message) => {
                 console.log('gameEventMessageCallback');
-                // called when the client receives a STOMP message from the server
-                // if (message.binaryBody) {
+
                 if (message.body) {
-                    // console.log("gemc has message.body");
-                    // we always receive a gameevent
-                    // const decodedEventMessage = GameEventBuffer.decode(message.binaryBody);
-                    // console.log("gemc message is " + message);
-                    // console.log("gemc message.body is " + message.body);
-                    // console.log("gemc message.body.contentType is " + message.body.contentType);
-                    // console.log("gemc message.body.content is " + message.body.content);
-                    // // console.log("gemc message.body Uint8Array is " + Uint8Array(message.body));
-                    // var u8a = new Uint8Array(message.body);
-                    // console.log("gemc message.body Uint8Array is " + u8a);
-                    // console.log("gemc message body typecode " + message.body.typecode);
-                    // // console.log("qemc message.body.content.length is " + message.body.content.length);
-                    // console.log("qemc message.body.content is " + message.body.content);
-                    // console.log("qemc message.content is " + message.content);
-                    // console.log("gemc message.body.data is " + message.body.data);
-                    // console.log("gemc message.body.data_section is " + message.body.data_section);
-                    // console.log("gemc message.binary is " + message.binary);
-                    // console.log("qemc message.typecode is " + message.typecode);
 
-
-                    // var decoded = client.decode(message);
-                    // console.log("gemc message decoded is " + decoded);
-                    // var binaryBody = message.body.data;
-                    // const decodedEventMessage = GameEventBuffer.decode(message.body);
                     const decodedEventMessage = this.GameEventBuffer.decode(message.body);
-                    // console.log("gemc after decoding message.body - dem is " + decodedEventMessage);
-                    // console.log(decodedEventMessage);)
 
                     // check on what type of game event we received
                     switch (decodedEventMessage.type) {
                         case 2:
-                            // console.log('got a security event');
-                            // console.log(decodedEventMessage);
                             // security message
                             processSecurityGameEvent(decodedEventMessage.securityGameEventBuffer);
                             break;
                         case 1:
-                            // console.log("gemc got an entity game event");
                             // entity game event buffer is about a specific player
                             processEntityGameEvent(decodedEventMessage.entityGameEventBuffer);
                             break;
