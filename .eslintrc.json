@@ -1,27 +1,25 @@
 {
     "root": true,
-    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 8,
+        "sourceType": "module"
+    },
     "env": {
         "browser": true,
         "es6": true,
         "node": true
     },
     "plugins": [
-        "@typescript-eslint",
         "jsdoc"
     ],
     "extends": [
         "eslint:recommended",
         "google",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended",
         "plugin:jsdoc/recommended"
     ],
     "rules": {
         "space-infix-ops": "error",
         "space-in-parens": "error",
-        "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-var-requires": "off",
         "no-multi-spaces": "off",
         "no-console": "off",
         "camelcase": "off",

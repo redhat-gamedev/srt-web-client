@@ -1,40 +1,14 @@
-import config from '../config';
-import { v4 as uuidv4 } from 'uuid';
-import protobuf from 'protobufjs';
-import CursorKeys = Phaser.Types.Input.Keyboard.CursorKeys;
-import { Container, Connection, EventContext, Receiver, Sender } from 'rhea';
+// ESLint global declarations: https://eslint.org/docs/rules/no-undef
+/*
+global Phaser, uuidv4, protobuf
+*/
+
+import config from '../config.js';
 
 /**
  * MainScene is the main scene of the game where game play happens
  */
 export default class MainScene extends Phaser.Scene {
-    private readonly myuuid: string;
-    private player_uuid: string;
-    private readonly force_multiplier: number;
-    private readonly broker_endpoint: string;
-    private players: Players;
-
-    private readonly resolution_width: number;
-    private readonly resolution_height: number;
-
-    // Protobuff stuff
-    private CommandBuffer: protobuf.Type;
-    private SecurityCommandBuffer: protobuf.Type;
-    private GameEventBuffer: protobuf.Type;
-    private EntityGameEventBuffer: protobuf.Type;
-    private RawInputCommandBuffer: protobuf.Type;
-
-    private player_group: Phaser.Physics.Arcade.Group;
-    private cursors: CursorKeys;
-
-    // AMQP messaging stuff
-    private client: Container;
-    private ws: any;
-    private connection: Connection;
-    private main_game_event_receiver: Receiver;
-    private personal_game_event_receiver: Receiver;
-    private sender: Sender;
-
     /**
      * construct passing the unique key to the game instance
      */
@@ -44,38 +18,42 @@ export default class MainScene extends Phaser.Scene {
         // Initialize properties
         this.players = {};
         this.myuuid = uuidv4();
+        this.player_uuid = '';
         this.force_multiplier = config.FORCE_MULTIPLIER;
         this.broker_endpoint = config.BROKER_ENDPOINT;
 
         this.resolution_width = 800;
         this.resolution_height = 600;
-    }
 
-    /**
-     *
-     */
-    async loadRhea():Promise<void> {
-        this.client = require('rhea');
+        // Protobuff stuff
+        this.CommandBuffer = null;
+        this.SecurityCommandBuffer = null;
+        this.GameEventBuffer = null;
+        this.EntityGameEventBuffer = null;
+        this.RawInputCommandBuffer = null;
+
+        this.player_group = null;
+        this.cursors = null;
     }
 
     /**
      * Load the protobufs
      */
-    async loadProtobufs(): Promise<void> {
+    async loadProtobufs() {
         try {
-            const loadCommandBuffer = await protobuf.load('../network/proto/CommandBuffer.proto');
+            const loadCommandBuffer = await protobuf.load('./network/proto/CommandBuffer.proto');
             this.CommandBuffer = loadCommandBuffer.lookupType('redhatgamedev.srt.CommandBuffer');
 
-            const loadSecurityCommandBuffer = await protobuf.load('../network/proto/SecurityCommandBuffer.proto');
+            const loadSecurityCommandBuffer = await protobuf.load('./network/proto/SecurityCommandBuffer.proto');
             this.SecurityCommandBuffer = loadSecurityCommandBuffer.lookupType('redhatgamedev.srt.SecurityCommandBuffer');
 
-            const loadGameEventBuffer = await protobuf.load('../network/proto/GameEventBuffer.proto');
+            const loadGameEventBuffer = await protobuf.load('./network/proto/GameEventBuffer.proto');
             this.GameEventBuffer = loadGameEventBuffer.lookupType('redhatgamedev.srt.GameEventBuffer');
 
-            const loadEntityGameEventBuffer = await protobuf.load('../network/proto/EntityGameEventBuffer.proto');
+            const loadEntityGameEventBuffer = await protobuf.load('./network/proto/EntityGameEventBuffer.proto');
             this.EntityGameEventBuffer = loadEntityGameEventBuffer.lookupType('redhatgamedev.srt.EntityGameEventBuffer');
 
-            const loadRawInputCommandBuffer = await protobuf.load('../network/proto/RawInputCommandBuffer.proto');
+            const loadRawInputCommandBuffer = await protobuf.load('./network/proto/RawInputCommandBuffer.proto');
             this.RawInputCommandBuffer = loadRawInputCommandBuffer.lookupType('redhatgamedev.srt.RawInputCommandBuffer');
         }
         catch (e) {
@@ -87,8 +65,9 @@ export default class MainScene extends Phaser.Scene {
     /**
      * Set all the event handlers for the AMQP client events
      */
-    async setupAMQPClient(): Promise<void> {
-        // // AMQP messaging initialization
+    async setupAMQPClient() {
+        // AMQP messaging initialization
+        this.client = require('rhea');
         this.ws = this.client.websocket_connect(WebSocket);
         this.connection = this.client.connect({
             'connection_details': this.ws(this.broker_endpoint),
@@ -98,20 +77,20 @@ export default class MainScene extends Phaser.Scene {
         this.personal_game_event_receiver = this.connection.open_receiver('COMMAND.OUT.' + this.myuuid);
         this.sender = this.connection.open_sender('COMMAND.IN');
 
-        const brokerEndpoint = this.broker_endpoint;
-        const players = this.players;
-        const player_uuid = this.player_uuid;
-        const GameEventBuffer = this.GameEventBuffer;
+        // const brokerEndpoint = this.broker_endpoint;
+        // const players = this.players;
+        // const player_uuid = this.player_uuid;
+        // const GameEventBuffer = this.GameEventBuffer;
 
         this.client.on('connection_open', () => {
-            console.log('AMQP connection open to', brokerEndpoint);
+            console.log('AMQP connection open to', this.broker_endpoint);
         });
 
-        this.client.on('receiver_open', (context: EventContext) => {
+        this.client.on('receiver_open', (context) => {
             console.log('receiver_open: ' + context.receiver.source.address);
         });
 
-        this.client.on('sender_open', function() {
+        this.client.on('sender_open', () => {
             console.log('sender_open');
         });
 
@@ -121,11 +100,11 @@ export default class MainScene extends Phaser.Scene {
         // });
 
         // i.e. we have credit to do a send
-        this.client.on('sendable', function() {
+        this.client.on('sendable', () => {
             console.log('sendable');
         });
 
-        this.client.on('disconnected', function() {
+        this.client.on('disconnected', () => {
             console.log('disconnected');
         });
 
@@ -150,11 +129,11 @@ export default class MainScene extends Phaser.Scene {
             const body = amqp_message.data_section(scb_join_buffer);
             this.sender.send({ body });
 
-            const player_initialize = function(UUID: string) {
-                players[UUID] = { body: null, stuff: {} };
+            const player_initialize = (UUID) => {
+                this.players[UUID] = { body: null, stuff: {} };
             };
 
-            const process_security_game_event = function(buffer: any) {
+            const process_security_game_event = function(buffer) {
                 switch (buffer.type) {
                     case 1:
                         console.log('a player joined: ' + buffer.joinSecurityGameEventBuffer.UUID);
@@ -165,17 +144,17 @@ export default class MainScene extends Phaser.Scene {
                 }
             };
 
-            const process_entity_game_event = function(buffer: any) {
-                if (players[buffer.UUID] == null) {
+            const process_entity_game_event = (buffer) => {
+                if (this.players[buffer.UUID] == null) {
                     console.log('found a player we don\'t know about');
                     player_initialize(buffer.UUID);
                 }
                 // just store the pbbody details for the player
-                players[buffer.UUID].body = buffer.body;
+                this.players[buffer.UUID].body = buffer.body;
             };
 
             // the function when game event messages are received
-            const game_event_message_callback = function(message: any) {
+            const game_event_message_callback = (message) => {
                 console.log('game_event_message_callback');
                 // called when the client receives a STOMP message from the server
                 // if (message.binaryBody) {
@@ -204,7 +183,7 @@ export default class MainScene extends Phaser.Scene {
                     // console.log("gemc message decoded is " + decoded);
                     // var binaryBody = message.body.data;
                     // const decoded_event_message = GameEventBuffer.decode(message.body);
-                    const decoded_event_message = GameEventBuffer.decode(message.body) as any;
+                    const decoded_event_message = this.GameEventBuffer.decode(message.body);
                     // console.log("gemc after decoding message.body - dem is " + decoded_event_message);
                     // console.log(decoded_event_message);)
 
@@ -232,17 +211,17 @@ export default class MainScene extends Phaser.Scene {
 
             // AMQP stuff
             // i.e. received a message
-            this.main_game_event_receiver.on('message', function(context: EventContext) {
+            this.main_game_event_receiver.on('message', (context) => {
                 // console.log('received ' + context.message.body);
                 game_event_message_callback(context.message);
             });
 
-            const command_message_callback = (message: any) => {
+            const command_message_callback = (message) => {
                 console.log('got a command message');
                 if (message.binaryBody) {
                     // the command message is just our unique player UUID
                     this.player_uuid = new TextDecoder('utf-8').decode(message.binaryBody);
-                    console.log('unique player uuid: ' + player_uuid);
+                    console.log('unique player uuid: ' + this.player_uuid);
                 }
             };
 
@@ -261,8 +240,7 @@ export default class MainScene extends Phaser.Scene {
     /**
      * Preload
      */
-    async preload(): Promise<void> {
-        await this.loadRhea();
+    async preload() {
         await this.loadProtobufs();
         await this.setupAMQPClient();
     }
@@ -270,7 +248,7 @@ export default class MainScene extends Phaser.Scene {
     /**
      * Create the games main play scene
      */
-    create(): void {
+    create() {
         console.log('[MainScene] create');
 
         // Add the background star field image
@@ -295,9 +273,9 @@ export default class MainScene extends Phaser.Scene {
     /**
      * Main game loop
      */
-    update(): void {
+    update() {
         // iterate over the players and draw their last known location
-        Object.values(this.players).forEach((player: Player) => {
+        Object.values(this.players).forEach((player) => {
 
             // don't do anything if we don't have a body object for the player yet
             if (player.body != null) {
@@ -336,23 +314,23 @@ export default class MainScene extends Phaser.Scene {
 
         // handle keyboard stuff
         if ((xmove != 0) || (ymove != 0)) {
-            const keyboard_input = {
-                type                 : 2,
-                rawInputCommandBuffer: {
-                    type                          : 1,
-                    UUID                          : this.player_uuid,
-                    dualStickRawInputCommandBuffer: {
-                        pbv2Move: {
-                            x: xmove, y: ymove,
-                        },
-                        pbv2Shoot: {
-                            x: 0, y: 0,
-                        },
-                    },
-                },
-            };
-            const keyboard_message = this.CommandBuffer.create(keyboard_input);
-            const keyboard_buffer = this.CommandBuffer.encode(keyboard_message).finish();
+            // const keyboard_input = {
+            //     type                 : 2,
+            //     rawInputCommandBuffer: {
+            //         type                          : 1,
+            //         UUID                          : this.player_uuid,
+            //         dualStickRawInputCommandBuffer: {
+            //             pbv2Move: {
+            //                 x: xmove, y: ymove,
+            //             },
+            //             pbv2Shoot: {
+            //                 x: 0, y: 0,
+            //             },
+            //         },
+            //     },
+            // };
+            // const keyboard_message = this.CommandBuffer.create(keyboard_input);
+            // const keyboard_buffer = this.CommandBuffer.encode(keyboard_message).finish();
 
             // STOMP stuff
             // client.publish({

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -19,6 +19,16 @@
         background-color: black;
       }
     </style>
+
+    <!-- Third party libraries -->
+    <script src="./network/rhea.js"></script>
+    <script src="./node_modules/phaser/dist/phaser.js"></script>
+    <script src="./node_modules/uuid/dist/umd/uuidv4.min.js"></script>
+    <script src="./node_modules/protobufjs/dist/protobuf.js"></script>
+
+    <!--  First party scripts  -->
+    <script type="module" src="./index.js"></script>
+
     <div id="phaser-game"></div>
   </body>
 </html>
