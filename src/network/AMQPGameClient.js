@@ -201,14 +201,8 @@ export default class AMQPGameClient {
 
         const keyboardMessage = this.CommandBuffer.create(keyboardInput);
         const keyboardBuffer = this.CommandBuffer.encode(keyboardMessage).finish();
-
-        this.sender.send({
-            destination: 'COMMAND.IN',
-            binaryBody : keyboardBuffer,
-            headers    : {
-                'content-type': 'application/octet-stream',
-                'reply-to'    : 'COMMAND.OUT.' + this.uuid,
-            },
-        });
+        const amqpMessage = this.rhea.message;
+        const body = amqpMessage.data_section(keyboardBuffer);
+        this.sender.send({ body });
     }
 }

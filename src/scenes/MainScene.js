@@ -3,8 +3,6 @@
 global Phaser
 */
 
-import config from '../config.js';
-
 /**
  * MainScene is the main scene of the game where game play happens
  */
@@ -61,11 +59,10 @@ export default class MainScene extends Phaser.Scene {
             // don't do anything if we don't have a body object for the player yet
             if (player.body != null) {
                 // if the player has no phaser group object, create one
-                if (player.stuff.phaserGroup == null) {
-                    const xpos = player.body.position.x + this.cameras.main.centerX;
-                    const ypos = player.body.position.y + this.cameras.main.centerY;
-                    const group = this.playerGroup.create(xpos, ypos, 'ship');
-                    this.playerPhysicsGroups[player.uuid] = group;
+                if (this.playerPhysicsGroups[player.uuid] == null) {
+                    const x = player.body.position.x + this.cameras.main.centerX;
+                    const y = player.body.position.y + this.cameras.main.centerY;
+                    this.playerPhysicsGroups[player.uuid] = this.playerGroup.create(x, y, 'ship');
                 }
                 else {
                     // otherwise just update the group's position
@@ -76,27 +73,27 @@ export default class MainScene extends Phaser.Scene {
 
         });
 
-        let xmove = 0;
-        let ymove = 0;
+        let xMove = 0;
+        let yMove = 0;
 
         // grab keyboard input to move our player
         if (this.cursors.left.isDown) {
-            xmove = -1 * config.FORCE_MULTIPLIER;
+            xMove = -1;
         }
         else if (this.cursors.right.isDown) {
-            xmove = 1 * config.FORCE_MULTIPLIER;
+            xMove = 1;
         }
 
         if (this.cursors.up.isDown) {
-            ymove = 1 * config.FORCE_MULTIPLIER;
+            yMove = 1;
         }
         else if (this.cursors.down.isDown) {
-            ymove = -1 * config.FORCE_MULTIPLIER;
+            yMove = -1;
         }
 
         // handle keyboard stuff
-        if ((xmove != 0) || (ymove != 0)) {
-            this.client.sendMove(xmove, ymove);
+        if ((xMove !== 0) || (yMove !== 0)) {
+            this.client.sendMove(xMove, yMove);
         }
     }
 }
