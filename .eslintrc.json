@@ -23,6 +23,7 @@
         "no-multi-spaces": "off",
         "no-console": "off",
         "padded-blocks": "off",
+        "new-cap": "off",
         "camelcase": [
             "error",
             {
@@ -47,12 +48,6 @@
                     "afterColon": true,
                     "on": "colon"
                 }
-            }
-        ],
-        "new-cap": [
-            "error",
-            {
-                "capIsNewExceptions": []
             }
         ],
         "spaced-comment": [

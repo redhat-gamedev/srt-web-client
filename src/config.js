@@ -3,5 +3,5 @@ export default {
     DEBUG: false,
 
     // Network
-    BROKER_ENDPOINT: 'ws://10.88.0.7:5672',
+    BROKER_ENDPOINT: 'ws://10.88.0.10:5672',
 };

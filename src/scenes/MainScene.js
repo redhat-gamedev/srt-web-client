@@ -1,6 +1,6 @@
 // ESLint global declarations: https://eslint.org/docs/rules/no-undef
 /*
-global Phaser
+global Phaser, _
 */
 
 /**
@@ -17,6 +17,9 @@ export default class MainScene extends Phaser.Scene {
         this.cursors = null;
 
         this.playerPhysicsGroups = {};
+
+        // There is no point sending move requests to the server faster than the server tick
+        this.sendMoveThrottled = _.throttle(this.sendMove, 25);
     }
 
     /**
@@ -26,6 +29,9 @@ export default class MainScene extends Phaser.Scene {
      */
     create(data) {
         console.log('[MainScene] create');
+
+        // Zoom the camera way in to account for server resolution
+        this.cameras.main.zoom = 7;
 
         this.client = data.client;
         this.model = data.model;
@@ -51,8 +57,11 @@ export default class MainScene extends Phaser.Scene {
 
     /**
      * Main game loop
+     *
+     * @param {number} time current time
+     * @param {number} delta time since last loop in ms
      */
-    update() {
+    update(time, delta) {
         // iterate over the players and draw their last known location
         Object.values(this.model.players).forEach((player) => {
 
@@ -63,37 +72,55 @@ export default class MainScene extends Phaser.Scene {
                     const x = player.body.position.x + this.cameras.main.centerX;
                     const y = player.body.position.y + this.cameras.main.centerY;
                     this.playerPhysicsGroups[player.uuid] = this.playerGroup.create(x, y, 'ship');
+                    this.playerPhysicsGroups[player.uuid].scaleX = 0.1;
+                    this.playerPhysicsGroups[player.uuid].scaleY = 0.1;
                 }
                 else {
                     // otherwise just update the group's position
-                    this.playerPhysicsGroups[player.uuid].setX(player.body.position.x + this.cameras.main.centerX);
-                    this.playerPhysicsGroups[player.uuid].setY(player.body.position.y + this.cameras.main.centerY);
+                    const playerSprite = this.playerPhysicsGroups[player.uuid];
+                    const serverX = player.body.position.x + this.cameras.main.centerX;
+                    const serverY = player.body.position.y + this.cameras.main.centerY;
+
+                    // Simple linear interpolation to smooth out position updates
+                    const lerpX = Phaser.Math.Linear(playerSprite.x, serverX, 0.3);
+                    const lerpY = Phaser.Math.Linear(playerSprite.y, serverY, 0.3);
+                    playerSprite.setX(lerpX);
+                    playerSprite.setY(lerpY);
                 }
             }
-
         });
 
-        let xMove = 0;
-        let yMove = 0;
+        let directionX = 0;
+        let directionY = 0;
 
         // grab keyboard input to move our player
         if (this.cursors.left.isDown) {
-            xMove = -1;
+            directionX = -1;
         }
         else if (this.cursors.right.isDown) {
-            xMove = 1;
+            directionX = 1;
         }
 
         if (this.cursors.up.isDown) {
-            yMove = 1;
+            directionY = -1;
         }
         else if (this.cursors.down.isDown) {
-            yMove = -1;
+            directionY = 1;
         }
 
         // handle keyboard stuff
-        if ((xMove !== 0) || (yMove !== 0)) {
-            this.client.sendMove(xMove, yMove);
+        if ((directionX !== 0) || (directionY !== 0)) {
+            this.sendMoveThrottled(directionX, directionY);
         }
+    }
+
+    /**
+     * Invokes the server client to signal a directional force for the player
+     *
+     * @param {number} directionX 1 for right or -1 for left
+     * @param {number} directionY 1 for up -1 for down
+     */
+    sendMove(directionX, directionY) {
+        this.client.sendMove(directionX, directionY);
     }
 }
