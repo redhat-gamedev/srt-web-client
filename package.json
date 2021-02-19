@@ -24,6 +24,7 @@
         "eslint": "eslint ./src --ext .js"
     },
     "dependencies": {
+        "lodash": "^4.17.20",
         "phaser": "~3.52.0",
         "protobufjs": "^6.10.2",
         "rhea": "^1.0.24",
