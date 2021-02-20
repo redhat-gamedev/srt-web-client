@@ -30,9 +30,6 @@ export default class MainScene extends Phaser.Scene {
     create(data) {
         console.log('[MainScene] create');
 
-        // Zoom the camera way in to account for server resolution
-        // this.cameras.main.zoom = 7;
-
         this.client = data.client;
         this.model = data.model;
 
@@ -72,8 +69,7 @@ export default class MainScene extends Phaser.Scene {
                     const x = player.body.position.x + this.cameras.main.centerX;
                     const y = player.body.position.y + this.cameras.main.centerY;
                     this.playerPhysicsGroups[player.uuid] = this.playerGroup.create(x, y, 'ship');
-                    this.playerPhysicsGroups[player.uuid].scaleX = 0.1;
-                    this.playerPhysicsGroups[player.uuid].scaleY = 0.1;
+                    this.playerPhysicsGroups[player.uuid].scale = 0.75;
                 }
                 else {
                     // otherwise just update the group's position
