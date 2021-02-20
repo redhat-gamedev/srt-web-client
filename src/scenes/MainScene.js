@@ -31,7 +31,7 @@ export default class MainScene extends Phaser.Scene {
         console.log('[MainScene] create');
 
         // Zoom the camera way in to account for server resolution
-        this.cameras.main.zoom = 7;
+        // this.cameras.main.zoom = 7;
 
         this.client = data.client;
         this.model = data.model;
