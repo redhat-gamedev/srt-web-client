@@ -16,6 +16,8 @@ export default class MainScene extends Phaser.Scene {
         this.playerGroup = null;
         this.cursors = null;
 
+        this.quitButton = null;
+
         this.playerPhysicsGroups = {};
 
         // There is no point sending move requests to the server faster than the server tick
@@ -41,6 +43,15 @@ export default class MainScene extends Phaser.Scene {
             this.game.scale.height,
             'starfield')
             .setOrigin(0);
+
+        // Add the quit button
+        this.quitButton = this.add.sprite(1900, 30, 'quit_button').setInteractive();
+        this.quitButton.scale = 0.1;
+        this.quitButton.on('pointerdown', function(pointer) {
+            // i have no idea how to use the right "this" - EJ
+            data.client.sendLeave();
+        });
+
 
         // Start the game play music
         const music = this.sound.add('gameplay_track_1');

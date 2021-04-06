@@ -205,4 +205,20 @@ export default class AMQPGameClient {
         const body = amqpMessage.data_section(keyboardBuffer);
         this.sender.send({ body });
     }
+
+    /**
+     * Send a leave command to the server
+     *
+     */
+    sendLeave() {
+        console.log('user clicked leave button');
+        const sbcLeave = { type: 1, securityCommandBuffer: { type: 2, UUID: this.uuid } };
+        const scbLeaveMessage = this.CommandBuffer.create(sbcLeave);
+        const scbLeaveBuffer = this.CommandBuffer.encode(scbLeaveMessage).finish();
+
+        // AMQP stuff
+        const amqpMessage = this.rhea.message;
+        const body = amqpMessage.data_section(scbLeaveBuffer);
+        this.sender.send({ body });
+    }
 }

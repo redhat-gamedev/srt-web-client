@@ -36,6 +36,7 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image('ship_blue', './images/spaceship_blue.png');
         this.load.image('ship_red', './images/spaceship_red.png');
         this.load.image('ship', './images/ship.png');
+        this.load.image('quit_button', '/images/circle_x.png');
 
         // Load audio
         this.load.audio('gameplay_track_1', [
