@@ -99,6 +99,10 @@ export default class AMQPGameClient {
                 this.model.players[UUID] = { uuid: UUID, body: null, stuff: {} };
             };
 
+            const playerDestroy = (UUID) => {
+                delete this.model.players[UUID];
+            };
+
             const processSecurityGameEvent = function(buffer) {
                 switch (buffer.type) {
                     case 1:
@@ -107,11 +111,21 @@ export default class AMQPGameClient {
                         // create an entity in the player array with the incoming uuid
                         playerInitialize(buffer.joinSecurityGameEventBuffer.UUID);
                         break;
+                    case 2:
+                        console.log('a player left: ' + buffer.leaveSecurityGameEventBuffer.UUID);
+                        // player-destroy
+                        playerDestroy(buffer.leaveSecurityGameEventBuffer.UUID);
+                        break;
                 }
             };
 
             const processEntityGameEvent = (buffer) => {
+                console.log('known players: ' + Object.keys(this.model.players));
                 if (this.model.players[buffer.UUID] == null) {
+                    // EJ: this probably shouldn't happen. I think this only happens when the client
+                    // first starts up because the client doesn't receive its own join as a message
+                    // we probably should instead initialize the player array with our own UUID when
+                    // the client first starts
                     console.log('found a player we don\'t know about');
                     playerInitialize(buffer.UUID);
                 }
