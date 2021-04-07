@@ -49,6 +49,10 @@ export default class PreloadScene extends Phaser.Scene {
         this.uuid = uuidv4();
         console.log('Our player identity: ' + this.uuid);
 
+        // initialize the game model's player array with ourselves
+        this.model.players[this.uuid] = { uuid: this.uuid, body: null, stuff: {} };
+        console.log('Player keys: ' + Object.keys(this.model.players));
+
         // Create the AMQP client and initialize, this instance will be passed between scenes
         this.client = new AMQPGameClient(config.BROKER_ENDPOINT, this.model, this.uuid);
         await this.client.init();

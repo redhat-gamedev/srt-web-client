@@ -73,8 +73,18 @@ export default class MainScene extends Phaser.Scene {
         // iterate over the players and draw their last known location
         Object.values(this.model.players).forEach((player) => {
 
+            // check if the player should be reaped
+            if (player.toDestroy == true) {
+                console.log('reap player: ' + player.uuid);
+
+                // delete the group for the player
+                this.playerPhysicsGroups[player.uuid].destroy();
+
+                // remove the player from the list
+                delete this.model.players[player.uuid];
+            }
             // don't do anything if we don't have a body object for the player yet
-            if (player.body != null) {
+            else if (player.body != null) {
                 // if the player has no phaser group object, create one
                 if (this.playerPhysicsGroups[player.uuid] == null) {
                     const x = player.body.position.x + this.cameras.main.centerX;

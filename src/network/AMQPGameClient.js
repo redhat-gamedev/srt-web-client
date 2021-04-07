@@ -101,7 +101,8 @@ export default class AMQPGameClient {
             };
 
             const playerDestroy = (UUID) => {
-                delete this.model.players[UUID];
+                // technically we are marking the player for destruction in the game loop
+                this.model.players[UUID].toDestroy = true;
             };
 
             const processSecurityGameEvent = function(buffer) {
