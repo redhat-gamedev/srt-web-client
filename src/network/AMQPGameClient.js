@@ -1,5 +1,5 @@
 /*
-global uuidv4, protobuf
+global protobuf
 */
 
 /**
@@ -12,11 +12,12 @@ export default class AMQPGameClient {
      *
      * @param {string} brokerEndpoint websocket endpoint to connect to the broker
      * @param {object} model holds the state of the game
+     * @param {string} uuid the uuid of this client's player
      */
-    constructor(brokerEndpoint, model) {
+    constructor(brokerEndpoint, model, uuid) {
         this.brokerEndpoint = brokerEndpoint;
         this.model = model;
-        this.uuid = uuidv4();
+        this.uuid = uuid;
     }
 
     /**

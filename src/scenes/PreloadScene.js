@@ -1,6 +1,6 @@
 // ESLint global declarations: https://eslint.org/docs/rules/no-undef
 /*
-global Phaser
+global Phaser, uuidv4
 */
 
 import AMQPGameClient from '../network/AMQPGameClient.js';
@@ -44,8 +44,13 @@ export default class PreloadScene extends Phaser.Scene {
             './audio/music_srt_gameplay_singularity.ogg',
         ]);
 
+        // initialize our player UUID
+        // TODO: this probably needs to end up being the player identity from RHSSO
+        this.uuid = uuidv4();
+        console.log('Our player identity: ' + this.uuid);
+
         // Create the AMQP client and initialize, this instance will be passed between scenes
-        this.client = new AMQPGameClient(config.BROKER_ENDPOINT, this.model);
+        this.client = new AMQPGameClient(config.BROKER_ENDPOINT, this.model, this.uuid);
         await this.client.init();
     }
 
