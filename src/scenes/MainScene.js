@@ -48,8 +48,9 @@ export default class MainScene extends Phaser.Scene {
         this.quitButton = this.add.sprite(1900, 30, 'quit_button').setInteractive();
         this.quitButton.scale = 0.1;
         this.quitButton.on('pointerdown', function(pointer) {
-            // i have no idea how to use the right "this" - EJ
-            data.client.sendLeave();
+            // see https://stackoverflow.com/questions/55264077/phaser-3-clickable-sprite-cant-start-scene for
+            // why we use scene.scene
+            this.scene.scene.start('QuitScene', { client: data.client });
         });
 
 
