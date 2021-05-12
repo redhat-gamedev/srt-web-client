@@ -88,12 +88,19 @@ export default class MainScene extends Phaser.Scene {
             else if (player.body != null) {
                 // if the player has no phaser group object, create one
                 if (this.playerPhysicsGroups[player.uuid] == null) {
+                    const textStyle = {
+                        font           : '32px Arial',
+                        fill           : '#ff0044',
+                        align          : 'center',
+                        backgroundColor: '#ffff00',
+                    };
                     const x = player.body.position.x + this.cameras.main.centerX;
                     const y = player.body.position.y + this.cameras.main.centerY;
                     this.playerPhysicsGroups[player.uuid] = this.playerGroup.create(x, y, 'ship');
                     this.playerPhysicsGroups[player.uuid].scale = 0.5;
                     // box2d angle is in radians, and rotation in phaser is in radians
                     this.playerPhysicsGroups[player.uuid].setRotation(player.body.angle);
+                    this.playerPhysicsGroups[player.uuid].setAngle(this.playerPhysicsGroups[player.uuid].angle + 90);
                 }
                 else {
                     // otherwise just update the group's position
@@ -107,6 +114,7 @@ export default class MainScene extends Phaser.Scene {
                     playerSprite.setX(lerpX);
                     playerSprite.setY(lerpY);
                     playerSprite.setRotation(player.body.angle);
+                    playerSprite.setAngle(playerSprite.angle + 90);
                 }
             }
         });
@@ -123,10 +131,10 @@ export default class MainScene extends Phaser.Scene {
         }
 
         if (this.cursors.up.isDown) {
-            directionX = -1;
+            directionX = 1;
         }
         else if (this.cursors.down.isDown) {
-            directionX = 1;
+            directionX = -1;
         }
 
         // handle keyboard stuff
