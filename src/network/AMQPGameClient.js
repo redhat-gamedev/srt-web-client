@@ -1,5 +1,5 @@
 /*
-global uuidv4, protobuf
+global protobuf
 */
 
 /**
@@ -12,11 +12,12 @@ export default class AMQPGameClient {
      *
      * @param {string} brokerEndpoint websocket endpoint to connect to the broker
      * @param {object} model holds the state of the game
+     * @param {string} uuid the uuid of this client's player
      */
-    constructor(brokerEndpoint, model) {
+    constructor(brokerEndpoint, model, uuid) {
         this.brokerEndpoint = brokerEndpoint;
         this.model = model;
-        this.uuid = uuidv4();
+        this.uuid = uuid;
     }
 
     /**
@@ -99,6 +100,11 @@ export default class AMQPGameClient {
                 this.model.players[UUID] = { uuid: UUID, body: null, stuff: {} };
             };
 
+            const playerDestroy = (UUID) => {
+                // technically we are marking the player for destruction in the game loop
+                this.model.players[UUID].toDestroy = true;
+            };
+
             const processSecurityGameEvent = function(buffer) {
                 switch (buffer.type) {
                     case 1:
@@ -107,11 +113,21 @@ export default class AMQPGameClient {
                         // create an entity in the player array with the incoming uuid
                         playerInitialize(buffer.joinSecurityGameEventBuffer.UUID);
                         break;
+                    case 2:
+                        console.log('a player left: ' + buffer.leaveSecurityGameEventBuffer.UUID);
+                        // player-destroy
+                        playerDestroy(buffer.leaveSecurityGameEventBuffer.UUID);
+                        break;
                 }
             };
 
             const processEntityGameEvent = (buffer) => {
+                console.log('known players: ' + Object.keys(this.model.players));
                 if (this.model.players[buffer.UUID] == null) {
+                    // EJ: this probably shouldn't happen. I think this only happens when the client
+                    // first starts up because the client doesn't receive its own join as a message
+                    // we probably should instead initialize the player array with our own UUID when
+                    // the client first starts
                     console.log('found a player we don\'t know about');
                     playerInitialize(buffer.UUID);
                 }
@@ -203,6 +219,22 @@ export default class AMQPGameClient {
         const keyboardBuffer = this.CommandBuffer.encode(keyboardMessage).finish();
         const amqpMessage = this.rhea.message;
         const body = amqpMessage.data_section(keyboardBuffer);
+        this.sender.send({ body });
+    }
+
+    /**
+     * Send a leave command to the server
+     *
+     */
+    sendLeave() {
+        console.log('user clicked leave button');
+        const sbcLeave = { type: 1, securityCommandBuffer: { type: 2, UUID: this.uuid } };
+        const scbLeaveMessage = this.CommandBuffer.create(sbcLeave);
+        const scbLeaveBuffer = this.CommandBuffer.encode(scbLeaveMessage).finish();
+
+        // AMQP stuff
+        const amqpMessage = this.rhea.message;
+        const body = amqpMessage.data_section(scbLeaveBuffer);
         this.sender.send({ body });
     }
 }
