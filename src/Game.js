@@ -6,6 +6,7 @@ global Phaser
 import PreloadScene from './scenes/PreloadScene.js';
 import MenuScene from './scenes/MenuScene.js';
 import MainScene from './scenes/MainScene.js';
+import QuitScene from './scenes/QuitScene.js';
 
 /**
  * Main game entry class don't add much code here this is just a launcher
@@ -29,7 +30,7 @@ export default class Game extends Phaser.Game {
                     debug: false, // TODO: figure out how to get this from config.js
                 },
             },
-            scene: [PreloadScene, MenuScene, MainScene],
+            scene: [PreloadScene, MenuScene, MainScene, QuitScene],
         };
         super(config);
     }
