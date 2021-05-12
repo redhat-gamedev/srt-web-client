@@ -36,6 +36,9 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image('ship_blue', './images/spaceship_blue.png');
         this.load.image('ship_red', './images/spaceship_red.png');
         this.load.image('ship', './images/ship.png');
+
+        // These from the Kenney UI Pack: Space Expansion
+        // https://kenney.nl/assets/ui-pack-space-expansion
         this.load.image('glass-panel', './images/glassPanel.png');
         this.load.image('cursor-hand', './images/cursor_hand.png');
 

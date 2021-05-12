@@ -89,7 +89,9 @@ export default class MenuScene extends Phaser.Scene {
         // emit the 'selected' event
         button.emit('selected');
 
-        this.scene.start('MainScene', { client: this.client, model: this.model });
+        if (0 == this.selectedButtonIndex) {
+            this.scene.start('MainScene', { client: this.client, model: this.model });
+        }
     }
 
     /**
@@ -102,67 +104,48 @@ export default class MenuScene extends Phaser.Scene {
 
         this.client = data.client;
         this.model = data.model;
-
-        this.cameras.main.backgroundColor.setTo(0, 0, 0);
-        // this.input.keyboard.on('keydown-SPACE', function(event) {
-        //     console.log('Hello from the Space Bar!');
-        //     // this.input.scene.start('MainScene', { client: this.client, model: this.model });
-        // });
-        // this.input.keyboard.on('keydown-SPACE', this.someFunction, this);
-        // this.input.keyboard.addCapture('SPACE');
-        // this.add.text(10, 10, 'Press SPACE to start!', { fontSize: '20px' });
-
-        // // TODO: create a main menu "Play" button
-        // this.scene.start('MainScene', { client: this.client, model: this.model });
-
-
         const { width, height } = this.scale;
+        this.cameras.main.backgroundColor.setTo(0, 0, 0);
+
+        this.add.text(10, 10, 'Up/Down and SPACE to select!', { fontSize: '20px' });
 
         // Play button
         const playButton = this.add.image(width * 0.5, height * 0.6, 'glass-panel')
             .setDisplaySize(150, 50);
-
-        this.add.text(playButton.x, playButton.y, 'Play')
+        this.add.text(playButton.x, playButton.y, 'Join')
             .setOrigin(0.5);
+        this.buttons.push(playButton);
+        playButton.on('selected', () => {
+            console.log('join');
+        });
 
         // Settings button
         const settingsButton = this.add.image(playButton.x, playButton.y + playButton.displayHeight + 10, 'glass-panel')
             .setDisplaySize(150, 50);
-
-        this.add.text(settingsButton.x, settingsButton.y, 'Settings')
+        this.add.text(settingsButton.x, settingsButton.y, 'Settings', { color: '#7f7f7f' })
             .setOrigin(0.5);
-
-        // Credits button
-        const creditsButton = this.add.image(settingsButton.x, settingsButton.y + settingsButton.displayHeight + 10, 'glass-panel')
-            .setDisplaySize(150, 50);
-
-        this.add.text(creditsButton.x, creditsButton.y, 'Credits')
-            .setOrigin(0.5);
-
-
-        this.buttons.push(playButton);
         this.buttons.push(settingsButton);
-        this.buttons.push(creditsButton);
-
-        this.buttonSelector = this.add.image(0, 0, 'cursor-hand');
-
-        this.selectButton(0);
-
-        playButton.on('selected', () => {
-            console.log('play');
-        });
-
         settingsButton.on('selected', () => {
             console.log('settings');
         });
 
+        // Credits button
+        const creditsButton = this.add.image(settingsButton.x, settingsButton.y + settingsButton.displayHeight + 10, 'glass-panel')
+            .setDisplaySize(150, 50);
+        this.add.text(creditsButton.x, creditsButton.y, 'Credits', { color: '#7f7f7f' })
+            .setOrigin(0.5);
+        this.buttons.push(creditsButton);
         creditsButton.on('selected', () => {
             console.log('credits');
         });
 
+        this.buttonSelector = this.add.image(0, 0, 'cursor-hand');
+        this.selectButton(0);
+
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
             playButton.off('selected');
-            // ...
+            settingsButton.off('selected');
+            creditsButton.off('selected');
         });
     }
 
@@ -186,17 +169,5 @@ export default class MenuScene extends Phaser.Scene {
         else if (spaceJustPressed) {
             this.confirmSelection();
         }
-    }
-
-    /**
-     * C
-     *
-     * @param {event} event does...
-     */
-    someFunction(event) {
-        console.log('Hello from the Space Bar!');
-        // TODO: create a main menu "Play" button
-        this.scene.start('MainScene', { client: this.client, model: this.model });
-        // this.scene.start('MainScene', this.data);
     }
 }
