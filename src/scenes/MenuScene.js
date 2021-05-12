@@ -90,6 +90,7 @@ export default class MenuScene extends Phaser.Scene {
         button.emit('selected');
 
         if (0 == this.selectedButtonIndex) {
+            this.client.init();
             this.scene.start('MainScene', { client: this.client, model: this.model });
         }
     }

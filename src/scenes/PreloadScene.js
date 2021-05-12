@@ -51,7 +51,7 @@ export default class PreloadScene extends Phaser.Scene {
 
         // Create the AMQP client and initialize, this instance will be passed between scenes
         this.client = new AMQPGameClient(config.BROKER_ENDPOINT, this.model);
-        await this.client.init();
+        // await this.client.init();
     }
 
     /**
