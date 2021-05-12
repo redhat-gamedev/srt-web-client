@@ -38,6 +38,12 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image('ship', './images/ship.png');
         this.load.image('quit_button', '/images/circle_x.png');
 
+        // These from the Kenney UI Pack: Space Expansion
+        // https://kenney.nl/assets/ui-pack-space-expansion
+        this.load.image('glass-panel', './images/glassPanel.png');
+        this.load.image('cursor-hand', './images/cursor_hand.png');
+
+
         // Load audio
         this.load.audio('gameplay_track_1', [
             './audio/music_srt_gameplay_singularity.mp3',
@@ -55,7 +61,7 @@ export default class PreloadScene extends Phaser.Scene {
 
         // Create the AMQP client and initialize, this instance will be passed between scenes
         this.client = new AMQPGameClient(config.BROKER_ENDPOINT, this.model, this.uuid);
-        await this.client.init();
+        // await this.client.init();
     }
 
     /**
