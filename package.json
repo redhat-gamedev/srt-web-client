@@ -2,7 +2,7 @@
     "name": "srt-web-client",
     "version": "0.0.1",
     "description": "An MVP implementation of a web-based client for the Space Rings Thing game.",
-    "main": "src/index.js",
+    "main": "src/js/index.js",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/redhat-gamedev/srt-web-client.git"
@@ -18,12 +18,15 @@
     },
     "homepage": "https://github.com/redhat-gamedev/srt-web-client#readme",
     "scripts": {
-        "start": "npm run dev",
-        "test": "npm run eslint",
-        "dev": "browser-sync start --server --serveStatic ./src --files './src/**/*.*' --directory --no-notify",
+        "start": "npm run build-dev",
+        "clean": "gulp clean",
+        "build-dev": "gulp build-watch-serve",
+        "build-prod": "gulp build --production",
+        "serve": "gulp serve",
         "eslint": "eslint ./src --ext .js"
     },
     "dependencies": {
+        "@babel/runtime": "^7.14.0",
         "lodash": "^4.17.20",
         "phaser": "~3.52.0",
         "protobufjs": "^6.10.2",
@@ -31,9 +34,24 @@
         "uuid": "^8.3.2"
     },
     "devDependencies": {
+        "@babel/core": "^7.13.1",
+        "@babel/plugin-transform-runtime": "^7.14.3",
+        "@babel/preset-env": "^7.13.5",
+        "babelify": "^10.0.0",
         "browser-sync": "^2.26.14",
+        "browserify": "^17.0.0",
+        "del": "^6.0.0",
         "eslint": "^7.20.0",
         "eslint-config-google": "^0.14.0",
-        "eslint-plugin-jsdoc": "^32.0.0"
+        "eslint-plugin-jsdoc": "^32.0.0",
+        "gulp": "^4.0.2",
+        "gulp-if": "^3.0.0",
+        "gulp-sourcemaps": "^3.0.0",
+        "gulp-string-replace": "^1.1.2",
+        "gulp-tap": "^2.0.0",
+        "gulp-terser": "^2.0.1",
+        "vinyl-buffer": "^1.0.1",
+        "vinyl-source-stream": "^2.0.0",
+        "yargs": "^16.2.0"
     }
 }

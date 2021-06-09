@@ -1,7 +1,9 @@
 // ESLint global declarations: https://eslint.org/docs/rules/no-undef
 /*
-global Phaser, _
+global Phaser
 */
+
+const _ = require('lodash');
 
 /**
  * MainScene is the main scene of the game where game play happens

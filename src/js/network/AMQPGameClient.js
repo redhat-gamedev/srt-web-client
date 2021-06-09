@@ -1,6 +1,5 @@
-/*
-global uuidv4, protobuf
-*/
+const protobuf = require('protobufjs');
+const uuidv4 = require('uuid').v4;
 
 /**
  * A AMQP Game Client that wraps a generic client like Rhea or Stomp
@@ -24,19 +23,19 @@ export default class AMQPGameClient {
      */
     async loadProtobufs() {
         try {
-            const loadCommandBuffer = await protobuf.load('/network/proto/CommandBuffer.proto');
+            const loadCommandBuffer = await protobuf.load('/js/network/proto/CommandBuffer.proto');
             this.CommandBuffer = loadCommandBuffer.lookupType('redhatgamedev.srt.CommandBuffer');
 
-            const loadSecurityCommandBuffer = await protobuf.load('/network/proto/SecurityCommandBuffer.proto');
+            const loadSecurityCommandBuffer = await protobuf.load('/js/network/proto/SecurityCommandBuffer.proto');
             this.SecurityCommandBuffer = loadSecurityCommandBuffer.lookupType('redhatgamedev.srt.SecurityCommandBuffer');
 
-            const loadGameEventBuffer = await protobuf.load('/network/proto/GameEventBuffer.proto');
+            const loadGameEventBuffer = await protobuf.load('/js/network/proto/GameEventBuffer.proto');
             this.GameEventBuffer = loadGameEventBuffer.lookupType('redhatgamedev.srt.GameEventBuffer');
 
-            const loadEntityGameEventBuffer = await protobuf.load('/network/proto/EntityGameEventBuffer.proto');
+            const loadEntityGameEventBuffer = await protobuf.load('/js/network/proto/EntityGameEventBuffer.proto');
             this.EntityGameEventBuffer = loadEntityGameEventBuffer.lookupType('redhatgamedev.srt.EntityGameEventBuffer');
 
-            const loadRawInputCommandBuffer = await protobuf.load('/network/proto/RawInputCommandBuffer.proto');
+            const loadRawInputCommandBuffer = await protobuf.load('/js/network/proto/RawInputCommandBuffer.proto');
             this.RawInputCommandBuffer = loadRawInputCommandBuffer.lookupType('redhatgamedev.srt.RawInputCommandBuffer');
         }
         catch (e) {
