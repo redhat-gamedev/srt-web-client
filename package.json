@@ -1,7 +1,7 @@
 {
     "name": "srt-web-client",
     "version": "0.0.1",
-    "description": "An MVP implementation of a web-based client for the Space Rings Thing game.",
+    "description": "An MVP implementation of a web-based client for the Space Rings Thing game. It's cool!",
     "main": "src/js/index.js",
     "repository": {
         "type": "git",
