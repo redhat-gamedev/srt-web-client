@@ -1,2 +1,1 @@
-NODE_ENV=development
-DEV_MODE=true
+NODE_ENV=production
