@@ -18,9 +18,10 @@
     },
     "homepage": "https://github.com/redhat-gamedev/srt-web-client#readme",
     "scripts": {
-        "start": "npm run build-dev",
+        "start": "npm run serve",
         "clean": "gulp clean",
         "build": "npm run build-prod",
+        "start-dev": "npm run build-dev",
         "build-dev": "gulp build-watch-serve",
         "build-prod": "gulp build --production",
         "serve": "gulp serve",
