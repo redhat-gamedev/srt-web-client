@@ -18,7 +18,7 @@
     },
     "homepage": "https://github.com/redhat-gamedev/srt-web-client#readme",
     "scripts": {
-        "start": "npm run serve",
+        "start": "cd dist; ../node_modules/http-server/bin/http-server",
         "clean": "gulp clean",
         "build": "npm run build-prod",
         "start-dev": "npm run build-dev",
@@ -29,6 +29,7 @@
     },
     "dependencies": {
         "@babel/runtime": "^7.14.0",
+        "http-server": "^0.12.3",
         "lodash": "^4.17.20",
         "phaser": "~3.52.0",
         "protobufjs": "^6.10.2",
