@@ -20,6 +20,7 @@
     "scripts": {
         "start": "npm run build-dev",
         "clean": "gulp clean",
+        "build": "npm run build-prod",
         "build-dev": "gulp build-watch-serve",
         "build-prod": "gulp build --production",
         "serve": "gulp serve",
