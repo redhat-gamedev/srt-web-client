@@ -19,6 +19,7 @@ export default class MainScene extends Phaser.Scene {
         this.quitButton = null;
 
         this.playerPhysicsGroups = {};
+        this.hudArray = {};
 
         // There is no point sending move requests to the server faster than the server tick
         this.sendMoveThrottled = _.throttle(this.sendMove, 25);
@@ -62,6 +63,7 @@ export default class MainScene extends Phaser.Scene {
             collideWorldBounds: true,
         });
         this.cursors = this.input.keyboard.createCursorKeys();
+
     }
 
     /**
@@ -97,6 +99,8 @@ export default class MainScene extends Phaser.Scene {
                     const x = player.body.position.x + this.cameras.main.centerX;
                     const y = player.body.position.y + this.cameras.main.centerY;
                     this.playerPhysicsGroups[player.uuid] = this.playerGroup.create(x, y, 'ship');
+                    const shortPlayerUUID = player.uuid.slice(player.uuid.length - 6);
+                    this.hudArray[player.uuid] = this.add.text(x,y,shortPlayerUUID);
                     this.playerPhysicsGroups[player.uuid].scale = 0.5;
                     // box2d angle is in radians, and rotation in phaser is in radians
                     this.playerPhysicsGroups[player.uuid].setRotation(player.body.angle);
@@ -105,6 +109,7 @@ export default class MainScene extends Phaser.Scene {
                 else {
                     // otherwise just update the group's position
                     const playerSprite = this.playerPhysicsGroups[player.uuid];
+                    const playerHud = this.hudArray[player.uuid];
                     const serverX = player.body.position.x + this.cameras.main.centerX;
                     const serverY = player.body.position.y + this.cameras.main.centerY;
 
@@ -115,6 +120,8 @@ export default class MainScene extends Phaser.Scene {
                     playerSprite.setY(lerpY);
                     playerSprite.setRotation(player.body.angle);
                     playerSprite.setAngle(playerSprite.angle + 90);
+                    playerHud.setX(lerpX);
+                    playerHud.setY(lerpY);
                 }
             }
         });
