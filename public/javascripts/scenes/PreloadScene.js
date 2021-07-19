@@ -3,8 +3,8 @@
 global Phaser, uuidv4
 */
 
-import AMQPGameClient from '../network/AMQPGameClient.js';
-import config from '../config.js';
+import AMQPGameClient from '/javascripts/AMQPGameClient.js';
+import config from '/javascripts/config.js';
 import GameModel from '../model/GameModel.js';
 
 /**
@@ -28,26 +28,24 @@ export default class PreloadScene extends Phaser.Scene {
     async preload() {
         console.log('[PreloadScene] loading assets...');
 
-        this.load.setBaseURL('assets');
-
         // Load images
-        this.load.image('starfield', './images/starfield.jpg');
-        this.load.image('spacepod', './images/spacepod.png');
-        this.load.image('ship_blue', './images/spaceship_blue.png');
-        this.load.image('ship_red', './images/spaceship_red.png');
-        this.load.image('ship', './images/ship.png');
+        this.load.image('starfield', '/images/starfield.jpg');
+        this.load.image('spacepod', '/images/spacepod.png');
+        this.load.image('ship_blue', '/images/spaceship_blue.png');
+        this.load.image('ship_red', '/images/spaceship_red.png');
+        this.load.image('ship', '/images/ship.png');
         this.load.image('quit_button', '/images/circle_x.png');
 
         // These from the Kenney UI Pack: Space Expansion
         // https://kenney.nl/assets/ui-pack-space-expansion
-        this.load.image('glass-panel', './images/glassPanel.png');
-        this.load.image('cursor-hand', './images/cursor_hand.png');
+        this.load.image('glass-panel', '/images/glassPanel.png');
+        this.load.image('cursor-hand', '/images/cursor_hand.png');
 
 
         // Load audio
         this.load.audio('gameplay_track_1', [
-            './audio/music_srt_gameplay_singularity.mp3',
-            './audio/music_srt_gameplay_singularity.ogg',
+            '/audio/music_srt_gameplay_singularity.mp3',
+            '/audio/music_srt_gameplay_singularity.ogg',
         ]);
 
         // initialize our player UUID
