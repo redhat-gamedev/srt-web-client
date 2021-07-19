@@ -18,13 +18,22 @@
     },
     "homepage": "https://github.com/redhat-gamedev/srt-web-client#readme",
     "scripts": {
-        "start": "npm run dev",
+        "start": "DEBUG=myapp:* node bin/www",
         "test": "npm run eslint",
         "dev": "browser-sync start --server --serveStatic ./src --files './src/**/*.*' --directory --no-notify",
-        "eslint": "eslint ./src --ext .js"
+        "eslint": "eslint ./src --ext .js",
+        "postinstall": "bash copyreqs.sh"
     },
     "dependencies": {
+        "cookie-parser": "~1.4.4",
+        "debug": "~2.6.9",
+        "express": "~4.16.1",
+        "express-session": "^1.17.2",
+        "http-errors": "~1.6.3",
+        "jade": "~1.11.0",
+        "keycloak-connect": "^14.0.0",
         "lodash": "^4.17.20",
+        "morgan": "~1.9.1",
         "phaser": "~3.52.0",
         "protobufjs": "^6.10.2",
         "rhea": "^1.0.24",
