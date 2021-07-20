@@ -117,3 +117,5 @@ dist
 
 # WebStorm
 .idea
+
+keycloak.json
