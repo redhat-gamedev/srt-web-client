@@ -4,9 +4,6 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var testRouter = require('./routes/test');
-
 var app = express();
 
 // view engine setup
@@ -34,12 +31,11 @@ app.use(session({
 }));
 
 app.use(keycloak.middleware());
+app.use( keycloak.middleware( { logout: '/logout' } ));
 
-app.use('/', indexRouter);
-//app.use('/test', testRouter);
-// route protected with Keycloak
-app.get('/test', keycloak.protect(), function(req, res) {
-    res.render('test', { title: 'Test of the test' });
+/* GET home page. */
+app.get('/', checkSsoHandler, function(req, res, next) {
+    res.render('index', { title: 'SRT' });
 });
 
 // catch 404 and forward to error handler
@@ -57,5 +53,17 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+function checkSsoHandler(req, res, next){
+    // perform middleware function e.g. check if user is authenticated
+
+    if ((req.session['keycloak-token'] ? true : false) && req.kauth.grant.access_token != null) {
+      // the user has a token and session info, so continue
+      next();
+    }
+
+    // missing stuff, so redirect to lobby
+    res.redirect(req.protocol + '://localhost:3000');
+}
 
 module.exports = app;

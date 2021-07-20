@@ -3,5 +3,5 @@ export default {
     DEBUG: false,
 
     // Network
-    BROKER_ENDPOINT: 'ws://a26c5a869f2ad410a9b84aa360420f7a-1974802018.us-east-2.elb.amazonaws.com',
+    BROKER_ENDPOINT: 'ws://af0aeb8f596e14ae0abfead85f3d2506-984043193.us-east-2.elb.amazonaws.com',
 };
