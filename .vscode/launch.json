@@ -8,7 +8,7 @@
       "type": "pwa-node",
       "request": "launch",
       "name": "Launch Program",
-      "env": { "DEBUG_MODE": "true" }
+      "env": { "DEBUG_MODE": "true" },
       "skipFiles": [
         "<node_internals>/**"
       ],
