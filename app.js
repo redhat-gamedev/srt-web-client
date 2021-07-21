@@ -34,17 +34,20 @@ app.use(keycloak.middleware());
 app.use( keycloak.middleware( { logout: '/logout' } ));
 
 /* GET home page. */
-app.get('/', checkSsoHandler, function(req, res, next) {
+app.post('/', checkSsoHandler, keycloak.protect(), function(req, res, next) {
+    console.log('reached index');
     res.render('index', { title: 'SRT' });
 });
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
+  console.log('caught 404');
   next(createError(404));
 });
 
 // error handler
 app.use(function(err, req, res, next) {
+  console.log('some kind of error');
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
@@ -55,15 +58,25 @@ app.use(function(err, req, res, next) {
 });
 
 function checkSsoHandler(req, res, next){
+    console.log('check sso');
     // perform middleware function e.g. check if user is authenticated
 
+    if (req.body.access_token != null) {
+      // there's an access token parameter, so the user is _probably_ logged in
+      // allow them to continue to SSO
+      console.log('body access token present');
+      next();
+    }
+
     if ((req.session['keycloak-token'] ? true : false) && req.kauth.grant.access_token != null) {
-      // the user has a token and session info, so continue
+      console.log('session data present');
+      // the user has a token and session info, so continue to SSO
       next();
     }
 
     // missing stuff, so redirect to lobby
-    res.redirect(req.protocol + '://localhost:3000');
+    console.log('redirecting to lobby');
+    res.redirect(req.protocol + '://' + process.env.LOBBY_HOST);
 }
 
 module.exports = app;
