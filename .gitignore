@@ -119,3 +119,4 @@ dist
 .idea
 
 keycloak.json
+.env.development
