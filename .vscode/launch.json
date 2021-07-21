@@ -8,7 +8,9 @@
       "type": "pwa-node",
       "request": "launch",
       "name": "Launch Program",
-      "env": { "DEBUG_MODE": "true" },
+      "console": "integratedTerminal",
+      "env": { "DEBUG": "myapp:*" },
+      "envFile": "${workspaceFolder}/.env.development",
       "skipFiles": [
         "<node_internals>/**"
       ],
