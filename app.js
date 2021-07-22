@@ -43,6 +43,7 @@ app.post('/', checkSsoHandler, keycloak.protect(), function(req, res, next) {
 
 // quit link inside game
 app.get('/quit', function(req, res, next) {
+    req.session.destroy();
     res.redirect(req.protocol + '://' + process.env.LOBBY_HOST);
 });
 
@@ -53,6 +54,7 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
+  console.log('some kind of error');
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
