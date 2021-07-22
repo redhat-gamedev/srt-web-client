@@ -67,6 +67,7 @@ function checkSsoHandler(req, res, next){
     // perform middleware function e.g. check if user is authenticated
 
     if (req.body.access_token != null) {
+      console.log('user has an access token');
       // there's an access token parameter, so the user is _probably_ logged in
       // allow them to continue to SSO
       should_redirect = false;
@@ -74,6 +75,7 @@ function checkSsoHandler(req, res, next){
     }
 
     if ((req.session['keycloak-token'] ? true : false) && req.kauth.grant.access_token != null) {
+      console.log('user has a keycloak token');
       // the user has a token and session info, so continue to SSO
       should_redirect = false;
       next();
@@ -81,6 +83,7 @@ function checkSsoHandler(req, res, next){
 
     // missing stuff, so redirect to lobby
     if (should_redirect == true) {
+      console.log('stuff is missing');
       res.redirect(req.protocol + '://' + process.env.LOBBY_HOST);
     }
 }
