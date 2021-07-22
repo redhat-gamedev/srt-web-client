@@ -93,6 +93,10 @@ export default class MenuScene extends Phaser.Scene {
             this.client.init();
             this.scene.start('MainScene', { client: this.client, model: this.model });
         }
+
+        if (3 == this.selectedButtonIndex) {
+            window.open('/quit');
+        }
     }
 
     /**
@@ -140,6 +144,16 @@ export default class MenuScene extends Phaser.Scene {
             console.log('credits');
         });
 
+        // Quit button
+        const quitButton = this.add.image(creditsButton.x, creditsButton.y + creditsButton.displayHeight + 10, 'glass-panel')
+            .setDisplaySize(150, 50);
+        this.add.text(quitButton.x, quitButton.y, 'Quit', { color: '#7f7f7f' })
+            .setOrigin(0.5);
+        this.buttons.push(quitButton);
+        quitButton.on('selected', () => {
+            console.log('quit');
+        });
+
         this.buttonSelector = this.add.image(0, 0, 'cursor-hand');
         this.selectButton(0);
 
@@ -147,6 +161,7 @@ export default class MenuScene extends Phaser.Scene {
             playButton.off('selected');
             settingsButton.off('selected');
             creditsButton.off('selected');
+            quitButton.off('selected');
         });
     }
 

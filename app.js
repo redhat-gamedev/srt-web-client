@@ -31,7 +31,6 @@ app.use(session({
 }));
 
 app.use(keycloak.middleware());
-app.use( keycloak.middleware( { logout: '/logout' } ));
 
 app.get('/', checkSsoHandler, keycloak.protect(), function(req, res, next) {
     res.render('index', { title: 'SRT' });
@@ -40,6 +39,11 @@ app.get('/', checkSsoHandler, keycloak.protect(), function(req, res, next) {
 /* GET home page. */
 app.post('/', checkSsoHandler, keycloak.protect(), function(req, res, next) {
     res.render('index', { title: 'SRT' });
+});
+
+// quit link inside game
+app.get('/quit', function(req, res, next) {
+    res.redirect(req.protocol + '://' + process.env.LOBBY_HOST);
 });
 
 // catch 404 and forward to error handler
