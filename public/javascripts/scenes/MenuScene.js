@@ -95,7 +95,7 @@ export default class MenuScene extends Phaser.Scene {
         }
 
         if (3 == this.selectedButtonIndex) {
-            window.open('/quit');
+            window.location.href = '/quit';
         }
     }
 
