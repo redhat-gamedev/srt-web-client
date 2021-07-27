@@ -25,5 +25,8 @@ export default class QuitScene extends Phaser.Scene {
         this.client = data.client;
 
         this.client.sendLeave();
+
+        // go to the quit endpoint of the express app which sends the player back to the lobby
+        window.location.href = '/quit';
     }
 }
