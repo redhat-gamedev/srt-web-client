@@ -1,4 +1,4 @@
-# Space Rings Thing
+# Space Ring Things
 A scaleable multiplayer game example
 
 ## Hacking
