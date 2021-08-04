@@ -32,16 +32,24 @@ app.use(session({
     store            : memoryStore,
 }));
 
-app.use(keycloak.middleware());
+if (!debug.enabled()) {
+    app.use(keycloak.middleware());
+}
 
-app.get('/', checkSsoHandler, keycloak.protect(), function(req, res, next) {
-    res.render('index', { title: 'SRT' });
-});
+const middlewares = [
+    '/',
+    debug.enabled() ? undefined : checkSsoHandler,
+    debug.enabled() ? undefined : keycloak.protect(),
+    function (req, res, next) {
+        res.render('index', {title: 'SRT'});
+    }
+].filter(n => n);
 
 /* GET home page. */
-app.post('/', checkSsoHandler, keycloak.protect(), function(req, res, next) {
-    res.render('index', { title: 'SRT' });
-});
+app.get(...middlewares);
+
+/* POST home page. */
+app.post(...middlewares);
 
 // quit link inside game
 app.get('/quit', function(req, res, next) {
